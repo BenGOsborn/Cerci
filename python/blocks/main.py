@@ -72,7 +72,6 @@ class Brain:
 
 # All items have a standard 3 length input
 items = trainData()
-
 brain = Brain(items['weightsSingle'], items['biasSingle'])
 
 inputs = [
@@ -96,12 +95,14 @@ actual = [
     [1, 1, 1]
 ]
 
-for _ in range(10000):
+outBlock = OutputBlock(items['weightsDouble'], items['biasDouble'])
+
+for _ in range(1000):
     for inp, act in zip(inputs, actual):
-        brain.train(inp, act)
+        outBlock.train(inp, act)
 
 err = 0
 for inp, act in zip(inputs, actual):
-    vals = brain.feedForward(inp)
+    vals = outBlock.feedForward(inp)
     err += error(vals, act)
-
+print(err)

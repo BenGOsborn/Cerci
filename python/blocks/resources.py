@@ -21,11 +21,15 @@ def sigmoid(x, deriv=False):
 # For a single layer network
 def trainData():
     weightsSingle = [
-        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]]
+        [0.5, 0.5, 0.5], 
+        [0.5, 0.5, 0.5], 
+        [0.5, 0.5, 0.5]
     ]
 
     biasSingle = [
-        [0.5, 0.5, 0.5]
+        0.5, 
+        0.5, 
+        0.5
     ]
 
     # For a double layer network

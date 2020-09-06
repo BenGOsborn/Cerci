@@ -15,10 +15,13 @@ class OutputBlock:
 
     def train(self, hidden_inputs, training_data):
         error = 0
-        for data, train_data in zip(hidden_inputs, training_data):
-            error += data - train_data
-
+        # This doesnt make much sense to have as there could be different values and this is silly
+        
         predictions = self.feedForward(hidden_inputs)
+        if (len(predictions) != len(training_data)): raise Exception(f"Predictions length is not same length as train data! Predictions Length: {len(predictions)} | Data Length: {len(training_data)}")
+
+        for prediction, train_data in zip(predictions, training_data):
+            error += prediction - train_data
 
         for y in range(len(self.weights)):
             for x in range(len(self.weights[0])):
@@ -39,18 +42,17 @@ class OutputBlock:
 
 # weights = [
 #     [0.5, 0.5, 0.5],
-#     [0.5, 0.5, 0.5],
-#     [0.5, 0.5, 0.5]
 # ]
 
 # bias = [
 #     0.5,
-#     0.5,
-#     0.5
 #     ]
 
 # x = OutputBlock(weights, bias)
 
-# inputs = [0.5, 0.5, 0.5]
+# inputs = [1, 0, 0]
+# training_data = [0]
 
+# print(x.feedForward(inputs))
+# x.train(inputs, training_data)
 # print(x.feedForward(inputs))

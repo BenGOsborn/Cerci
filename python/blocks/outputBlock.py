@@ -37,16 +37,20 @@ class OutputBlock:
 
         return prevErrors
 
-weights = [
-            [3, 1, 1]
-          ]
+# weights = [
+#     [0.5, 0.5, 0.5],
+#     [0.5, 0.5, 0.5],
+#     [0.5, 0.5, 0.5]
+# ]
 
-bias = [
-            0.5
-       ]
+# bias = [
+#     0.5,
+#     0.5,
+#     0.5
+#     ]
 
-x = OutputBlock(weights, bias)
+# x = OutputBlock(weights, bias)
 
-inputs = [0.5, 0.5, 0.5]
+# inputs = [0.5, 0.5, 0.5]
 
-print(x.feedForward(inputs))
+# print(x.feedForward(inputs))

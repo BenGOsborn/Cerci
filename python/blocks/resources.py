@@ -11,3 +11,45 @@ def sigmoid(x, deriv=False):
         return 1/(1+exp(-x))
         # This is because we pass through the sigmoid value, and therefore the value is not raw and does not need to be parsed as a sigmoid value as it already is one
     return x*(1-x)
+
+# One thing to remember is that the values can have multiple outputs but they just have to be put into array values
+
+# For a single layer network
+def trainData():
+    weightsSingle = [
+        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]]
+    ]
+
+    biasSingle = [
+        [0.5, 0.5, 0.5]
+    ]
+
+    # For a double layer network
+    weightsDouble = [
+        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]],
+        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]]
+    ]
+
+    biasDouble = [
+        [0.5, 0.5, 0.5],
+        [0.5, 0.5, 0.5]
+    ]
+
+    # For a multi layer network
+    weightsMulti = [
+        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]],
+        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]],
+        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]]
+    ]
+
+    biasMulti = [
+        [0.5, 0.5, 0.5],
+        [0.5, 0.5, 0.5],
+        [0.5, 0.5, 0.5]
+    ]
+
+    return {
+            "weightsSingle": weightsSingle, "biasSingle": biasSingle, 
+            "weightsDouble": weightsDouble, "biasDouble": biasDouble, 
+            "weightsMulti": weightsMulti, "biasMulti": biasMulti
+            }

@@ -36,3 +36,17 @@ class OutputBlock:
                 prevError.append(prevError)
 
         return prevErrors
+
+weights = [
+            [3, 1, 1]
+          ]
+
+bias = [
+            0.5
+       ]
+
+x = OutputBlock(weights, bias)
+
+inputs = [0.5, 0.5, 0.5]
+
+print(x.feedForward(inputs))

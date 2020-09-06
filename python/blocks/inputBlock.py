@@ -14,10 +14,6 @@ class InputBlock:
         return output
 
     def train(self, input_data, hidden_errors):
-        # error = 0
-        # for data, train_data in zip(input_data, hidden_errors):
-        #     error += data - train_data
-
         error = sum(hidden_errors) / len(hidden_errors)
         predictions = self.feedForward(input_data)
 
@@ -29,3 +25,18 @@ class InputBlock:
         for x in range(len(self.weights)):
             update = error*sigmoid(predictions[x], deriv=True)
             self.bias[x] -= 0.5*update
+
+# weights = [
+#     [0.5, 0.5, 0.5],
+#     [0.5, 0.5, 0.5]
+# ]
+# bias = [
+#     0.5,
+#     0.5
+# ]
+
+# x = InputBlock(weights, bias)
+
+# inputs = [0.5, 0.5, 0.5]
+
+# print(x.feedForward(inputs))

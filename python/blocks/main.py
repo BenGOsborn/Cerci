@@ -2,7 +2,7 @@ from inputBlock import InputBlock
 from hiddenBlock import HiddenBlock
 from outputBlock import OutputBlock
 
-from resources import trainData
+from resources import trainData, error
 
 class Brain:
 
@@ -45,16 +45,13 @@ class Brain:
     # This is just going to be a basic single input single training data
     # I will write a higher level data parser afterwards
     def train(self, input_data, training_data):
-        prev_fed_through = [input_data]
+        prev_outputs = [input_data]
 
         # We should add the input data to this to make it make more sense
-        feed_values = input_data
+        outputs = input_data
         for layer in self.networkLayers[:-1]:
-            feed_values = layer.feedForward(feed_values)
-            prev_fed_through.append(feed_values)
-
-        # So now it has all of the layers, and we have to go backwards now
-        reversed_layers = self.networkLayers[::-1]
+            outputs = layer.feedForward(outputs)
+            prev_outputs.append(outputs)
 
         # Pseudo:
 
@@ -62,14 +59,49 @@ class Brain:
         # For the first in the array which is the final output layer in the reversed layers
         # We update this layers weights using the training data and the prev_fed_through last value
         # We then grab these error values and then set that as the prev error, and then feed it into the previous layer (This means we should start with the training_data in that fedthrougherror)
-        # We then iterate over the whole array until we get to the end of the layers, and the last one SHOULD be finishing with the 'input_data'
+
+        # This means it should start off with the previous inputs
+
+        # It is not parsing through the correct values and I am not sure why not?
+        error_values = training_data
+        for layer in self.networkLayers[::-1]:
+            hidden_input = prev_outputs.pop(-1)
+            error_values = layer.train(hidden_input, error_values)
+
+# The model isnt even making accurate predictions for the layer where it should be (outputBlock)
 
 # All items have a standard 3 length input
 items = trainData()
 
-brain = Brain(items['weightsMulti'], items['biasMulti'])
+brain = Brain(items['weightsSingle'], items['biasSingle'])
 
-inputs = [0.5, 0.5, 0.5]
-actual = [0.5, 0.5, 0.5]
+inputs = [
+    [0, 0, 0],
+    [0, 0, 1],
+    [0, 1, 0],
+    [1, 0, 0],
+    [0, 1, 1],
+    [1, 0, 1],
+    [1, 1, 0],
+    [1, 1, 1]
+]
+actual = [
+    [0, 0, 0],
+    [0, 0, 1],
+    [0, 1, 0],
+    [1, 0, 0],
+    [0, 1, 1],
+    [1, 0, 1],
+    [1, 1, 0],
+    [1, 1, 1]
+]
 
-print(brain.train(inputs, actual))
+for _ in range(10000):
+    for inp, act in zip(inputs, actual):
+        brain.train(inp, act)
+
+err = 0
+for inp, act in zip(inputs, actual):
+    vals = brain.feedForward(inp)
+    err += error(vals, act)
+

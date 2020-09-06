@@ -6,6 +6,10 @@ def dot(arr1, arr2):
     if (len(arr1) != len(arr2)): raise Exception(f"Arrays are not of same length! Arr1 Length: {len(arr1)} | Arr2 Length: {len(arr2)}")
     return sum([one*two for one, two in zip(arr1, arr2)])
 
+def error(arr1, arr2):
+    if (len(arr1) != len(arr2)): raise Exception(f"Arrays are not of same length! Arr1 Length: {len(arr1)} | Arr2 Length: {len(arr2)}")
+    return abs(sum([one-two for one, two in zip(arr1, arr2)]))
+
 def sigmoid(x, deriv=False):
     if not deriv:
         return 1/(1+exp(-x))

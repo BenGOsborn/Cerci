@@ -33,7 +33,7 @@ class OutputBlock:
         for y in range(len(self.weights)):
             for x in range(len(self.weights[0])):
                 prevError = error*sigmoid(predictions[y], deriv=True)*self.weights[y][x]
-                prevError.append(prevError)
+                prevErrors.append(prevError)
 
         return prevErrors
 

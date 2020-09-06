@@ -8,7 +8,6 @@ class Brain:
 
     def __init__(self, weights, bias):
         self.networkLayers = []
-        # How am I defining the size of these layers though?
 
         if len(weights) == 0:
             raise Exception("Network requires atleast one layer")
@@ -35,6 +34,12 @@ class Brain:
             outLayer = OutputBlock(weights[-1], bias[-1])
             self.networkLayers.append(outLayer)
     
+    def getModel(self):
+        for layer in self.networkLayers:
+            print(layer.weights)
+            print(layer.bias)
+            print()
+
     def feedForward(self, inputs):
         outputs = inputs
         for layer in self.networkLayers:
@@ -71,8 +76,6 @@ class Brain:
 # The model isnt even making accurate predictions for the layer where it should be (outputBlock)
 
 # All items have a standard 3 length input
-items = trainData()
-brain = Brain(items['weightsSingle'], items['biasSingle'])
 
 inputs = [
     [0, 0, 0],
@@ -84,25 +87,49 @@ inputs = [
     [1, 1, 0],
     [1, 1, 1]
 ]
+# actual = [
+#     [0, 0, 0],
+#     [0, 0, 1],
+#     [0, 1, 0],
+#     [1, 0, 0],
+#     [0, 1, 1],
+#     [1, 0, 1],
+#     [1, 1, 0],
+#     [1, 1, 1]
+# ]
+
 actual = [
     [0, 0, 0],
-    [0, 0, 1],
-    [0, 1, 0],
-    [1, 0, 0],
-    [0, 1, 1],
-    [1, 0, 1],
-    [1, 1, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+    [1, 1, 1],
+    [1, 1, 1],
+    [1, 1, 1],
     [1, 1, 1]
 ]
 
-outBlock = OutputBlock(items['weightsDouble'], items['biasDouble'])
+items = trainData()
+
+act_weights, act_bias = items['weightsSingle'], items['biasSingle']
+
+brain = Brain(act_weights, act_bias)
 
 for _ in range(1000):
     for inp, act in zip(inputs, actual):
-        outBlock.train(inp, act)
+        brain.train(inp, act)
 
 err = 0
 for inp, act in zip(inputs, actual):
-    vals = outBlock.feedForward(inp)
+    vals = brain.feedForward(inp)
     err += error(vals, act)
-print(err)
+print(f"Error: {err}")
+
+# Alright theres a little bit of error here and Im not quite sure why its returning the exact same value, the values should be different
+# The values that its returning is all the same and I'm not too sure why it is
+
+# Is it just because the weight values are the same, and the bias values are the same as the input
+# If not there must be something wrong with ALL of the training models
+# The weight values are literally the exact same the whole way along why?
+print(brain.feedForward(inputs[6]))
+brain.getModel()

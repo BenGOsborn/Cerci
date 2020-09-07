@@ -8,9 +8,9 @@ class OutputBlock:
     def feedForward(self, hidden_inputs):
         output = [
             sigmoid(
-                dot(hidden_inputs, weights) + bias
+                dot(hidden_inputs, weights) + self.bias
             ) 
-        for weights, bias in zip(self.weights, self.bias)]
+        for weights in self.weights]
 
         return output
 
@@ -23,22 +23,29 @@ class OutputBlock:
             error += (prediction - train_data)/len(predictions)
 
         # So instead of the learning rate, take the learning rate to be a sigmoid of the absolute value of how its degressing, it should not change the sign
-
-        for y in range(len(self.weights)):
-            for x in range(len(self.weights[0])):
-                update = error*sigmoid(predictions[y], deriv=True)*hidden_inputs[x]
-                learn_rate = learnFunc(update)
-                self.weights[y][x] -= learn_rate*update
-
-        for x in range(len(self.weights)):
-            update = error*sigmoid(predictions[x], deriv=True)
-            learn_rate = learnFunc(update)
-            self.bias[x] -= learn_rate*update
-
         prevErrors = []
         for y in range(len(self.weights)):
             for x in range(len(self.weights[0])):
                 prevError = error*sigmoid(predictions[y], deriv=True)*self.weights[y][x]
                 prevErrors.append(prevError)
+
+        for y in range(len(self.weights)):
+            for x in range(len(self.weights[0])):
+
+                # We want to check the last layer only and have a deep look at the values which are being contributed to it
+
+                update = error*sigmoid(predictions[y], deriv=True)*hidden_inputs[x]
+                learn_rate = learnFunc(update)
+                self.weights[y][x] -= learn_rate*update
+
+                # This needs adjusting so that it activates at the start of when the error occurs
+                if ((y == len(self.weights)-1) and (sum(self.weights[y]) < 1)):
+                        print(f"Weight update: {update} | Adjusted weights: {self.weights[y]} | Predictions: {predictions} | Error: {error}")
+
+        biasUpdate = 0
+        for x in range(len(self.weights)):
+            biasUpdate += error*sigmoid(predictions[x], deriv=True)/len(predictions)
+        learn_rate = learnFunc(biasUpdate)
+        self.bias -= learn_rate*biasUpdate
 
         return prevErrors

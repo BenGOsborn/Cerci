@@ -8,9 +8,9 @@ class InputBlock:
     def feedForward(self, inputs):
         output = [
             relu(
-                dot(inputs, weights) + bias
+                dot(inputs, weights) + self.bias
             ) 
-        for weights, bias in zip(self.weights, self.bias)]
+        for weights in self.weights]
         return output
 
     def train(self, input_data, hidden_errors):
@@ -23,7 +23,8 @@ class InputBlock:
                 learn_rate = learnFunc(update)
                 self.weights[y][x] -= learn_rate*update
 
+        biasUpdate = 0
         for x in range(len(self.weights)):
-            update = error*relu(predictions[x], deriv=True)
-            learn_rate = learnFunc(update)
-            self.bias[x] -= learn_rate*update
+            biasUpdate += error*relu(predictions[x], deriv=True)/len(predictions)
+        learn_rate = learnFunc(biasUpdate)
+        self.bias -= learn_rate*biasUpdate

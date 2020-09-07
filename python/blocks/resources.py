@@ -23,7 +23,7 @@ def sigmoid(x, deriv=False):
     return x*(1-x)
 
 def learnFunc(x):
-    return 0.5*abs(tanh(x))
+    return 0.5*abs(tanh(4*x))
 
 # One thing to remember is that the values can have multiple outputs but they just have to be put into array values
 
@@ -35,17 +35,17 @@ def trainData():
         [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]]
     ]
     biasSingle = [
-        [random(), random(), random()]
+        random()
     ]
 
     # For a double layer network
     weightsDouble = [
-        [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]],
-        [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]]
+        [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()], [random(), random(), random()], [random(), random(), random()]],
+        [[random(), random(), random(), random(), random()], [random(), random(), random(), random(), random()], [random(), random(), random(), random(), random()]]
     ]
     biasDouble = [
-        [random(), random(), random()],
-        [random(), random(), random()]
+        random(),
+        random()
     ]
 
     # For a multi layer network
@@ -55,9 +55,9 @@ def trainData():
         [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]]
     ]
     biasMulti = [
-        [random(), random(), random()],
-        [random(), random(), random()],
-        [random(), random(), random()]
+        random(),
+        random(),
+        random()
     ]
 
     return {

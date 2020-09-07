@@ -106,9 +106,12 @@ act_weights, act_bias = items[f"weights{mode}"], items[f"bias{mode}"]
 
 brain = Brain(act_weights, act_bias)
 
-for _ in range(1000):
+# The result is so bad because there are 10 iterations
+for _ in range(250):
     for inp, act in zip(inputs, actual):
         brain.train(inp, act)
+
+print("")
 
 err = 0
 for inp, act in zip(inputs, actual):
@@ -121,12 +124,11 @@ print()
 brain.getModel()
 print(f"\nError: {err}")
 
-# So we can see that the bias terms are getting out of control and theres really not much idea why?
-# This bias term explosion is causing the one row to disappear continuously
-# What is causing this problem and how do we eliminate it ?
+# TLDR OF ERROR: The sign for one of the functions is always wrong and its unclear of why this is the case...
+# Maybe adding more neurons will fix this
 
-# Its not even just a huge bias value, its just the biases error does not get dispursed properly
-# Maybe we should create ONE bias and then train it like that, then add it to all of the neurons like its MEANT to be
+# So now we can observe when it breaks FOR THE DOUBLE LAYER: The weight values are the wrong sign in the one it goes wrong in, why is this exactly?
+# It does not happen for the single layer and therefore it must be a propogation error resulting to do with the previous layers outputs or its adjusted weights
 
 # Still broken for a multi layer network, possibly because of just two many values to fit
 # Test it with longer neuron amounts aswell

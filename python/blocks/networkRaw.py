@@ -126,3 +126,6 @@ print(f"Error: {err}")
 
 # It shouldnt nof been wrong because it was going to the node individually and not the array value
 # Should it be fitting it to the network better because it is doing multiple epochs
+
+# Maybe I should do line by line propogation again
+# Add adjustments for the learning rate

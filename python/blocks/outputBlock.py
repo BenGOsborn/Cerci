@@ -11,6 +11,7 @@ class OutputBlock:
                 dot(hidden_inputs, weights) + bias
             ) 
         for weights, bias in zip(self.weights, self.bias)]
+
         return output
 
     def train(self, hidden_inputs, training_data):
@@ -39,20 +40,3 @@ class OutputBlock:
                 prevErrors.append(prevError)
 
         return prevErrors
-
-# weights = [
-#     [0.5, 0.5, 0.5],
-# ]
-
-# bias = [
-#     0.5,
-#     ]
-
-# x = OutputBlock(weights, bias)
-
-# inputs = [1, 0, 0]
-# training_data = [0]
-
-# print(x.feedForward(inputs))
-# x.train(inputs, training_data)
-# print(x.feedForward(inputs))

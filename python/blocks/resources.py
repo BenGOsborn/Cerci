@@ -1,6 +1,7 @@
 # I want to create a dot product library
 # I want to create a sigmoid function and a sigmoid derivative
 from math import exp
+from random import random
 
 def dot(arr1, arr2):
     if (len(arr1) != len(arr2)): raise Exception(f"Arrays are not of same length! Arr1 Length: {len(arr1)} | Arr2 Length: {len(arr2)}")
@@ -19,6 +20,7 @@ def sigmoid(x, deriv=False):
 # One thing to remember is that the values can have multiple outputs but they just have to be put into array values
 
 # For a single layer network
+
 def trainData():
     # For a single layer networ
     weightsSingle = [

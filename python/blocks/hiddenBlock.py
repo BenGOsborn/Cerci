@@ -33,21 +33,3 @@ class HiddenBlock:
                 prevErrors.append(prevError)
         
         return prevErrors
-
-# weights = [
-#     [0.5, 0.5, 0.5],
-#     [0.5, 0.5, 0.5],
-#     [0.5, 0.5, 0.5]
-# ]
-
-# bias = [
-#     0.5,
-#     0.5,
-#     0.5
-# ]
-
-# x = HiddenBlock(weights, bias)
-
-# inputs = [0.5, 0.5, 0.5]
-
-# print(x.feedForward(inputs))

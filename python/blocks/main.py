@@ -35,6 +35,7 @@ class Brain:
             self.networkLayers.append(outLayer)
     
     def getModel(self):
+        # Make this spit out an array instead
         for layer in self.networkLayers:
             print(layer.weights)
             print(layer.bias)
@@ -87,30 +88,19 @@ inputs = [
     [1, 1, 0],
     [1, 1, 1]
 ]
-# actual = [
-#     [0, 0, 0],
-#     [0, 0, 1],
-#     [0, 1, 0],
-#     [1, 0, 0],
-#     [0, 1, 1],
-#     [1, 0, 1],
-#     [1, 1, 0],
-#     [1, 1, 1]
-# ]
 
 actual = [
     [0, 0, 0],
-    [0, 0, 0],
-    [0, 0, 0],
-    [0, 0, 0],
-    [1, 1, 1],
-    [1, 1, 1],
-    [1, 1, 1],
+    [0, 0, 1],
+    [0, 1, 0],
+    [1, 0, 0],
+    [0, 1, 1],
+    [1, 0, 1],
+    [1, 1, 0],
     [1, 1, 1]
 ]
 
 items = trainData()
-
 act_weights, act_bias = items['weightsSingle'], items['biasSingle']
 
 brain = Brain(act_weights, act_bias)
@@ -125,11 +115,4 @@ for inp, act in zip(inputs, actual):
     err += error(vals, act)
 print(f"Error: {err}")
 
-# Alright theres a little bit of error here and Im not quite sure why its returning the exact same value, the values should be different
-# The values that its returning is all the same and I'm not too sure why it is
-
-# Is it just because the weight values are the same, and the bias values are the same as the input
-# If not there must be something wrong with ALL of the training models
-# The weight values are literally the exact same the whole way along why?
-print(brain.feedForward(inputs[6]))
-brain.getModel()
+print(brain.feedForward(inputs[7]))

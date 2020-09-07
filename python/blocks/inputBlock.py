@@ -25,6 +25,3 @@ class InputBlock:
         for x in range(len(self.weights)):
             update = error*sigmoid(predictions[x], deriv=True)
             self.bias[x] -= 0.5*update
-
-
-# I want to add a feature where it autogens the weights by default if given an array of weights instead of nums by having random values

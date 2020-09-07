@@ -1,4 +1,4 @@
-from resources import sigmoid, dot
+from resources import relu, sigmoid, dot
 
 class OutputBlock:
     def __init__(self, weights, bias):

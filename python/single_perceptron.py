@@ -1,4 +1,4 @@
-from blocks.resources import sigmoid, dot
+from blocks.resources import relu, dot
 
 class Brain:
     def __init__(self, weights, bias):
@@ -7,7 +7,7 @@ class Brain:
 
     def feedForward(self, inputs):
         raw = dot(inputs, self.weights) + self.bias
-        return sigmoid(raw)
+        return relu(raw)
 
     def trainNetwork(self, input_data, training_data):
         # 1/2n*sum(predicted-observed)^2 - One half mean squared error
@@ -16,10 +16,10 @@ class Brain:
         error = (predicted - training_data) 
 
         for i in range(len(self.weights)):
-            update = error*sigmoid(predicted, deriv=True)*input_data[i]
+            update = error*relu(predicted, deriv=True)*input_data[i]
             self.weights[i] -= 0.5*update
 
-        biasUpdate = error*sigmoid(predicted, deriv=True)
+        biasUpdate = error*relu(predicted, deriv=True)
         self.bias -= 0.5*biasUpdate
 
 weights = [0.5, 0.5, 0.5]

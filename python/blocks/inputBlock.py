@@ -1,4 +1,4 @@
-from resources import sigmoid, dot
+from resources import relu, dot
 
 class InputBlock:
     def __init__(self, weights, bias):
@@ -7,7 +7,7 @@ class InputBlock:
 
     def feedForward(self, inputs):
         output = [
-            sigmoid(
+            relu(
                 dot(inputs, weights) + bias
             ) 
         for weights, bias in zip(self.weights, self.bias)]
@@ -19,9 +19,9 @@ class InputBlock:
 
         for y in range(len(self.weights)):
             for x in range(len(self.weights[0])):
-                update = error*sigmoid(predictions[y], deriv=True)*input_data[x]
+                update = error*relu(predictions[y], deriv=True)*input_data[x]
                 self.weights[y][x] -= 0.5*update
 
         for x in range(len(self.weights)):
-            update = error*sigmoid(predictions[x], deriv=True)
+            update = error*relu(predictions[x], deriv=True)
             self.bias[x] -= 0.5*update

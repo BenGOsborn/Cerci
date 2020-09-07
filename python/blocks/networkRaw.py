@@ -91,17 +91,19 @@ inputs = [
 
 actual = [
     [0, 0, 0],
-    [0, 0, 1],
-    [0, 1, 0],
-    [1, 0, 0],
-    [0, 1, 1],
-    [1, 0, 1],
-    [1, 1, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+    [1, 1, 1],
+    [1, 1, 1],
+    [1, 1, 1],
     [1, 1, 1]
 ]
 
 items = trainData()
-act_weights, act_bias = items['weightsSingle'], items['biasSingle']
+
+mode = "Multi"
+act_weights, act_bias = items[f"weights{mode}"], items[f"bias{mode}"]
 
 brain = Brain(act_weights, act_bias)
 
@@ -112,7 +114,15 @@ for _ in range(1000):
 err = 0
 for inp, act in zip(inputs, actual):
     vals = brain.feedForward(inp)
+    # vals = [round(val) for val in vals]
+    print(f"Predicted values: {vals} | Actual values: {act}")
+
     err += error(vals, act)
 print(f"Error: {err}")
 
-print(brain.feedForward(inputs[7]))
+# Maybe the taking of the averages is too much?
+# Its approximating the values too hard and I dont know why...
+# Might have to instead of doing this take the actual error values for the first one
+
+# It shouldnt nof been wrong because it was going to the node individually and not the array value
+# Should it be fitting it to the network better because it is doing multiple epochs

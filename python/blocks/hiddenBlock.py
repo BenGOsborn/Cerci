@@ -1,4 +1,4 @@
-from resources import sigmoid, dot
+from resources import relu, dot
 
 class HiddenBlock:
     def __init__(self, weights, bias):
@@ -7,7 +7,7 @@ class HiddenBlock:
 
     def feedForward(self, hidden_inputs):
         output = [
-            sigmoid(
+            relu(
                 dot(hidden_inputs, weights) + bias
             ) 
         for weights, bias in zip(self.weights, self.bias)]
@@ -19,17 +19,17 @@ class HiddenBlock:
 
         for y in range(len(self.weights)):
             for x in range(len(self.weights[0])):
-                update = error*sigmoid(predictions[y], deriv=True)*hidden_inputs[x]
+                update = error*relu(predictions[y], deriv=True)*hidden_inputs[x]
                 self.weights[y][x] -= 0.5*update
 
         for x in range(len(self.weights)):
-            update = error*sigmoid(predictions[x], deriv=True)
+            update = error*relu(predictions[x], deriv=True)
             self.bias[x] -= 0.5*update
 
         prevErrors = []
         for y in range(len(self.weights)):
             for x in range(len(self.weights[0])):
-                prevError = error*sigmoid(predictions[y], deriv=True)*self.weights[y][x]
+                prevError = error*relu(predictions[y], deriv=True)*self.weights[y][x]
                 prevErrors.append(prevError)
         
         return prevErrors

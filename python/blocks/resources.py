@@ -1,7 +1,7 @@
 # I want to create a dot product library
-# I want to create a sigmoid function and a sigmoid derivative
-from math import exp
+# I want to create a eigmoid function and a eigmoid derivative
 from random import random
+from math import exp
 
 def dot(arr1, arr2):
     if (len(arr1) != len(arr2)): raise Exception(f"Arrays are not of same length! Arr1 Length: {len(arr1)} | Arr2 Length: {len(arr2)}")
@@ -9,12 +9,17 @@ def dot(arr1, arr2):
 
 def error(arr1, arr2):
     if (len(arr1) != len(arr2)): raise Exception(f"Arrays are not of same length! Arr1 Length: {len(arr1)} | Arr2 Length: {len(arr2)}")
-    return abs(sum([one-two for one, two in zip(arr1, arr2)]))
+    return sum([abs(one - two) for one, two in zip(arr1, arr2)])
+
+def relu(x, deriv=False):
+    if not deriv:
+        return x if x > 0 else 0.1*x
+        # This is because we pass through the eigmoid value, and therefore the value is not raw and does not need to be parsed as a eigmoid value as it already is one
+    return 1 if x > 0 else 0.1
 
 def sigmoid(x, deriv=False):
     if not deriv:
         return 1/(1+exp(-x))
-        # This is because we pass through the sigmoid value, and therefore the value is not raw and does not need to be parsed as a sigmoid value as it already is one
     return x*(1-x)
 
 # One thing to remember is that the values can have multiple outputs but they just have to be put into array values
@@ -24,32 +29,34 @@ def sigmoid(x, deriv=False):
 def trainData():
     # For a single layer networ
     weightsSingle = [
-        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]]
+        [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]]
     ]
     biasSingle = [
-        [0.5, 0.5, 0.5]
+        [random(), random(), random()]
     ]
 
     # For a double layer network
     weightsDouble = [
-        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]],
-        [[0.4, 0.4, 0.4], [0.4, 0.4, 0.4], [0.4, 0.4, 0.4]]
+        [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]],
+        [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]]
     ]
     biasDouble = [
-        [0.5, 0.5, 0.5],
-        [0.4, 0.4, 0.4]
+        [random(), random(), random()],
+        [random(), random(), random()]
     ]
 
     # For a multi layer network
     weightsMulti = [
-        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]],
-        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]],
-        [[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]]
+        [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]],
+        [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]],
+        [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]],
+        [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]]
     ]
     biasMulti = [
-        [0.5, 0.5, 0.5],
-        [0.5, 0.5, 0.5],
-        [0.5, 0.5, 0.5]
+        [random(), random(), random()],
+        [random(), random(), random()],
+        [random(), random(), random()],
+        [random(), random(), random()]
     ]
 
     return {

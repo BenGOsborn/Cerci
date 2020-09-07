@@ -1,4 +1,4 @@
-from resources import relu, sigmoid, dot
+from resources import relu, sigmoid, learnFunc, dot
 
 class OutputBlock:
     def __init__(self, weights, bias):
@@ -15,23 +15,25 @@ class OutputBlock:
         return output
 
     def train(self, hidden_inputs, training_data):
-        error = 0
-        # This doesnt make much sense to have as there could be different values and this is silly
-        
         predictions = self.feedForward(hidden_inputs)
         if (len(predictions) != len(training_data)): raise Exception(f"Predictions length is not same length as train data! Predictions Length: {len(predictions)} | Data Length: {len(training_data)}")
 
+        error = 0
         for prediction, train_data in zip(predictions, training_data):
             error += (prediction - train_data)/len(predictions)
+
+        # So instead of the learning rate, take the learning rate to be a sigmoid of the absolute value of how its degressing, it should not change the sign
 
         for y in range(len(self.weights)):
             for x in range(len(self.weights[0])):
                 update = error*sigmoid(predictions[y], deriv=True)*hidden_inputs[x]
-                self.weights[y][x] -= 0.5*update
+                learn_rate = learnFunc(update)
+                self.weights[y][x] -= learn_rate*update
 
         for x in range(len(self.weights)):
             update = error*sigmoid(predictions[x], deriv=True)
-            self.bias[x] -= 0.5*update
+            learn_rate = learnFunc(update)
+            self.bias[x] -= learn_rate*update
 
         prevErrors = []
         for y in range(len(self.weights)):

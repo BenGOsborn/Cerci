@@ -1,4 +1,4 @@
-from resources import relu, dot
+from resources import relu, learnFunc, dot
 
 class HiddenBlock:
     def __init__(self, weights, bias):
@@ -20,11 +20,13 @@ class HiddenBlock:
         for y in range(len(self.weights)):
             for x in range(len(self.weights[0])):
                 update = error*relu(predictions[y], deriv=True)*hidden_inputs[x]
-                self.weights[y][x] -= 0.5*update
+                learn_rate = learnFunc(update)
+                self.weights[y][x] -= learn_rate*update
 
         for x in range(len(self.weights)):
             update = error*relu(predictions[x], deriv=True)
-            self.bias[x] -= 0.5*update
+            learn_rate = learnFunc(update)
+            self.bias[x] -= learn_rate*update
 
         prevErrors = []
         for y in range(len(self.weights)):

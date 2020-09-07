@@ -36,10 +36,9 @@ class Brain:
     
     def getModel(self):
         # Make this spit out an array instead
-        for layer in self.networkLayers:
-            print(layer.weights)
-            print(layer.bias)
-            print()
+        for i, layer in enumerate(self.networkLayers):
+            print(f"Weights Layer {i+1}: {layer.weights}")
+            print(f"Bias Layer {i+1}: {layer.bias}")
 
     def feedForward(self, inputs):
         outputs = inputs
@@ -87,7 +86,7 @@ inputs = [
     [1, 0, 1],
     [1, 1, 0],
     [1, 1, 1]
-]
+][1:-1]
 
 actual = [
     [0, 0, 0],
@@ -98,37 +97,36 @@ actual = [
     [1, 1, 1],
     [1, 1, 1],
     [1, 1, 1]
-]
+][1:-1]
 
 items = trainData()
 
-mode = "Multi"
+mode = "Double"
 act_weights, act_bias = items[f"weights{mode}"], items[f"bias{mode}"]
 
 brain = Brain(act_weights, act_bias)
 
-for _ in range(10000):
+for _ in range(1000):
     for inp, act in zip(inputs, actual):
         brain.train(inp, act)
 
 err = 0
 for inp, act in zip(inputs, actual):
     vals = brain.feedForward(inp)
-    # vals = [round(val) for val in vals]
-    print(f"Predicted values: {vals} | Actual values: {act}")
+    rounded = [round(val) for val in vals]
+    print(f"Predicted values: {vals} | Rounded values: {rounded} | Actual values: {act}")
 
     err += error(vals, act)
-print(f"Error: {err}")
+print()
+brain.getModel()
+print(f"\nError: {err}")
 
-# Maybe the taking of the averages is too much?
-# Its approximating the values too hard and I dont know why...
-# Might have to instead of doing this take the actual error values for the first one
+# So we can see that the bias terms are getting out of control and theres really not much idea why?
+# This bias term explosion is causing the one row to disappear continuously
+# What is causing this problem and how do we eliminate it ?
 
-# It shouldnt nof been wrong because it was going to the node individually and not the array value
-# Should it be fitting it to the network better because it is doing multiple epochs
-
-# Maybe I should do line by line propogation again
-# Add adjustments for the learning rate
+# Its not even just a huge bias value, its just the biases error does not get dispursed properly
+# Maybe we should create ONE bias and then train it like that, then add it to all of the neurons like its MEANT to be
 
 # Still broken for a multi layer network, possibly because of just two many values to fit
 # Test it with longer neuron amounts aswell

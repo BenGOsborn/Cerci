@@ -1,7 +1,7 @@
 # I want to create a dot product library
 # I want to create a eigmoid function and a eigmoid derivative
 from random import random
-from math import exp
+from math import exp, tanh
 
 def dot(arr1, arr2):
     if (len(arr1) != len(arr2)): raise Exception(f"Arrays are not of same length! Arr1 Length: {len(arr1)} | Arr2 Length: {len(arr2)}")
@@ -21,6 +21,9 @@ def sigmoid(x, deriv=False):
     if not deriv:
         return 1/(1+exp(-x))
     return x*(1-x)
+
+def learnFunc(x):
+    return 0.5*abs(tanh(x))
 
 # One thing to remember is that the values can have multiple outputs but they just have to be put into array values
 
@@ -49,11 +52,9 @@ def trainData():
     weightsMulti = [
         [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]],
         [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]],
-        [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]],
         [[random(), random(), random()], [random(), random(), random()], [random(), random(), random()]]
     ]
     biasMulti = [
-        [random(), random(), random()],
         [random(), random(), random()],
         [random(), random(), random()],
         [random(), random(), random()]

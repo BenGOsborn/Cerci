@@ -22,7 +22,7 @@ class OutputBlock:
         if (len(predictions) != len(training_data)): raise Exception(f"Predictions length is not same length as train data! Predictions Length: {len(predictions)} | Data Length: {len(training_data)}")
 
         for prediction, train_data in zip(predictions, training_data):
-            error += prediction - train_data
+            error += (prediction - train_data)/len(predictions)
 
         for y in range(len(self.weights)):
             for x in range(len(self.weights[0])):

@@ -107,7 +107,7 @@ act_weights, act_bias = items[f"weights{mode}"], items[f"bias{mode}"]
 
 brain = Brain(act_weights, act_bias)
 
-for _ in range(1000):
+for _ in range(10000):
     for inp, act in zip(inputs, actual):
         brain.train(inp, act)
 
@@ -129,3 +129,8 @@ print(f"Error: {err}")
 
 # Maybe I should do line by line propogation again
 # Add adjustments for the learning rate
+
+# Still broken for a multi layer network, possibly because of just two many values to fit
+# Test it with longer neuron amounts aswell
+
+# Create a test system where the amount of layers can be created from the neurons

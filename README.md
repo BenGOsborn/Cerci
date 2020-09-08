@@ -1,7 +1,7 @@
-# :robot: PROJECT: CERCI - 
+# :robot: PROJECT: CERCI (**C**alculating **E**rror in **R**ealtime for **C**omputer **I**nteractions)
 ## :brain: An advanced AI designed to simulate human interaction 
 
-- CERCI or '' is a custom made deep learning model aimed at simulating a human interaction
+- CERCI, short for '**C**alculating **E**rror in **R**ealtime for **C**omputer **I**nteractions', is a custom made deep learning model aimed at simulating a human interaction
 - CERCI will be created using Python and C++
 
 ## :hourglass: Plans

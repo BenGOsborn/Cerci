@@ -82,7 +82,17 @@ class Matrix:
     def print(self):
         for row in self.__matrix:
             print(row)
-
+            
+    def flatten():
+        new_matrix = []
+        
+        for row in self.__matrix:
+            for val in row:
+                new_matrix.append(val)
+                
+        # This does not account for a 1 dimensional array being parsed and will not put brackets around it to make it into a 2d array which it requires, this will need to be fixed
+        self.__matrix = new_matrix
+            
     def transpose(self):
         new_matrix = [[0 for _ in range(len(self.__matrix))] for _ in range(len(self.__matrix[0]))]
 

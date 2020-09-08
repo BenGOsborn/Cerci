@@ -1,7 +1,7 @@
 # Takes the dot product of two input vectors
 def dot(vector1, vector2):
     if (len(vector1) != len(vector2)): raise Exception(f"Vectors are not of same length! Length vector 1: {len(vector1)} | Length vector 2: {len(vector2)}") 
-    return sum([val1*val1 for val1, val2 in zip(vector1, vector2)])
+    return sum([val1*val2 for val1, val2 in zip(vector1, vector2)])
 
 # Add 1 to 2
 def add(matrix1, matrix2):
@@ -31,7 +31,7 @@ def subtract(matrix1, matrix2):
     for y in range(matrix1.size()[1]):
         tempArr = []
         for x in range(matrix1.size()[0]):
-            val = mat2[y][x] - mat1[y][x]
+            val = mat1[y][x] - mat2[y][x]
             tempArr.append(val)
         matrixNew.append(tempArr)
 
@@ -39,11 +39,13 @@ def subtract(matrix1, matrix2):
 
 # Returns the scalar multiplication of a matrix and a factor
 def multiplyScalar(matrix, factor):
+    mat = matrix.returnMatrix()
+
     newMatrix = []
     for y in range(matrix.size()[0]):
         tempArr = []
         for x in range(matrix.size()[1]):
-            val = factor*matrix[y][x] 
+            val = factor*mat[y][x] 
             tempArr.append(val)
         newMatrix.append(tempArr)
 
@@ -51,7 +53,7 @@ def multiplyScalar(matrix, factor):
 
 # Returns matrix1*matrix2
 def multiplyMatrices(matrix1, matrix2):
-    if (matrix1.size() != matrix2.size()): raise Exception(f"Matrix 1's columns must be equal length to Matrix 2's Rows! Matrix 1's columns: {matrix1.size()[1]} | Matrix 2's rows: {matrix2.size()[0]}")
+    if (matrix1.size()[1] != matrix2.size()[0]): raise Exception(f"Matrix 1's columns must be equal length to Matrix 2's Rows! Matrix 1's columns: {matrix1.size()[1]} | Matrix 2's rows: {matrix2.size()[0]}")
 
     mat1 = matrix1.returnMatrix()
     mat2 = matrix2.returnMatrix()
@@ -70,24 +72,12 @@ def multiplyMatrices(matrix1, matrix2):
 # For optimization preallocate the length of the matrices and then add in the values by index
 class Matrix:
     def __init__(self, arr=False, dims=False):
-        if ((dims == False) and (arr == False)):
-            raise Exception("Requires a n*n array or an array containing an integer as the rows count and the columns count!")
-        elif ((dims != False) and (arr != False)):
-            raise Exception("Matrix can only accept one input style!")
-        elif (arr != False):
+        if (arr != False):
             self.__matrix = arr
-            try:
-                self.__matrix[0][0][0]
-                raise Exception("Matrices must be of dimension n*n")
-            except:
-                try:
-                    self.__matrix[0][0]
-                except:
-                    raise Exception("Matrices must be of dimension n*n")
+        elif (dims != False):
+            self.__matrix = [[0.5 for _ in range(dims[1])] for _ in range(dims[0])] # Rows and columns (Rows is the height, colums is the row length)
         else:
-            if (len(dims) != 2):
-                raise Exception("'dims' requires an array of 2 parameters: the rows count and the columns count")
-            self.__matrix = [[1 for _ in range(dims[1])] for _ in range(dims[0])]
+            raise Exception("Matrix requires parameter 'arr' or 'dims'!")
 
     def print(self):
         for row in self.__matrix:

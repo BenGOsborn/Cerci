@@ -11,5 +11,5 @@
 * Provide CERCI with her own voice to communicate back
 * Have realtime analysis for fluent conversations
 
-## :pin: TODO
+## :pushpin: TODO
 * A 'pre dot stage' where the dot product has the option to return the pre dot stage instead of returning the evaluated dot product as a vector

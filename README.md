@@ -13,3 +13,6 @@
 
 ## :pushpin: TODO
 * A 'pre dot stage' where the dot product has the option to return the pre dot stage instead of returning the evaluated dot product as a vector
+- This will make it better for calculating the errors in the convolutional layers
+- It will do this by allowing for us to manipulate each weighted kernel with the input to take it out and then perform actions like adding with matrices
+* I need to make it so that the matrix always returns a n by 1 array even if there is one one row, and that it will keep it like this when transposing the matrix and when flattening the matrix

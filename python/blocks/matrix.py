@@ -71,18 +71,19 @@ def multiplyMatrices(matrix1, matrix2):
 
 # For optimization preallocate the length of the matrices and then add in the values by index
 class Matrix:
-    def validMatrix(self, arr):
+    def validMatrix(self):
         try:
-            arr[1]
-            return arr
+            self.__matrix[0][0]
         except:
-            return [arr]
+            self.__matrix = [self.__matrix]
 
     def __init__(self, arr=False, dims=False):
         if (arr != False):
-            self.__matrix = self.validMatrix(arr)
+            self.__matrix = arr
+            self.validMatrix()
         elif (dims != False):
             self.__matrix = [[0.5 for _ in range(dims[1])] for _ in range(dims[0])] # Rows and columns (Rows is the height, colums is the row length)
+            self.validMatrix()
         else:
             raise Exception("Matrix requires parameter 'arr' or 'dims'!")
 
@@ -90,7 +91,7 @@ class Matrix:
         for row in self.__matrix:
             print(row)
             
-    def flatten():
+    def flatten(self):
         new_matrix = []
         
         for row in self.__matrix:
@@ -99,6 +100,7 @@ class Matrix:
                 
         # This does not account for a 1 dimensional array being parsed and will not put brackets around it to make it into a 2d array which it requires, this will need to be fixed
         self.__matrix = new_matrix
+        self.validMatrix()
             
     def transpose(self):
         new_matrix = [[0 for _ in range(len(self.__matrix))] for _ in range(len(self.__matrix[0]))]
@@ -107,12 +109,15 @@ class Matrix:
             for x in range(len(self.__matrix[0])):
                 new_matrix[x][y] = self.__matrix[y][x]
 
-        self.__matrix = self.validMatrix(new_matrix)
+        self.__matrix = new_matrix
+        self.validMatrix()
 
     def applyFunc(self, func):
         for y in range(len(self.__matrix)):
             for x in range(len(self.__matrix[0])):
                self.__matrix[y][x] = func(self.__matrix[y][x])
+
+        self.validMatrix()
 
     def returnMatrix(self):
         return self.__matrix

@@ -71,9 +71,16 @@ def multiplyMatrices(matrix1, matrix2):
 
 # For optimization preallocate the length of the matrices and then add in the values by index
 class Matrix:
+    def validMatrix(self, arr):
+        try:
+            arr[1]
+            return arr
+        except:
+            return [arr]
+
     def __init__(self, arr=False, dims=False):
         if (arr != False):
-            self.__matrix = arr
+            self.__matrix = self.validMatrix(arr)
         elif (dims != False):
             self.__matrix = [[0.5 for _ in range(dims[1])] for _ in range(dims[0])] # Rows and columns (Rows is the height, colums is the row length)
         else:
@@ -90,7 +97,7 @@ class Matrix:
             for x in range(len(self.__matrix[0])):
                 new_matrix[x][y] = self.__matrix[y][x]
 
-        self.__matrix = new_matrix
+        self.__matrix = self.validMatrix(new_matrix)
 
     def applyFunc(self, func):
         for y in range(len(self.__matrix)):

@@ -1,5 +1,3 @@
-# I want to create a dot product library
-# I want to create a eigmoid function and a eigmoid derivative
 from random import random
 from math import exp, tanh
 

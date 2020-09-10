@@ -98,7 +98,6 @@ class Matrix:
             for val in row:
                 new_matrix.append(val)
                 
-        # This does not account for a 1 dimensional array being parsed and will not put brackets around it to make it into a 2d array which it requires, this will need to be fixed
         self.__matrix = new_matrix
         self.validMatrix()
             
@@ -111,6 +110,15 @@ class Matrix:
 
         self.__matrix = new_matrix
         self.validMatrix()
+
+    def average(self):
+        new_matrix = Matrix(arr=self.__matrix)
+        new_matrix.flatten()
+        ln = new_matrix.size()[1]
+        sm = sum(new_matrix.returnMatrix()[0])
+        avg = sm/ln
+
+        return avg
 
     def applyFunc(self, func):
         for y in range(len(self.__matrix)):

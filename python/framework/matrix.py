@@ -1,7 +1,11 @@
 # Takes the dot product of two input vectors
 def dot(vector1, vector2):
-    if (len(vector1) != len(vector2)): raise Exception(f"Vectors are not of same length! Length vector 1: {len(vector1)} | Length vector 2: {len(vector2)}") 
+    if ((len(vector1) == 1) and (len(vector1) == 1)):
+        if (len(vector1[0]) != len(vector2[0])): raise Exception(f"Vectors are not of same length! Length vector1[0]: {len(vector1[0])} | Length vector2[0]: {len(vector2[0])}")
+        return sum([val1*val2 for val1, val2 in zip(vector1[0], vector2[0])])
+    elif (len(vector1) != len(vector2)): raise Exception(f"Vectors are not of same length! Length vector1: {len(vector1)} | Length vector2: {len(vector2)}") 
     return sum([val1*val2 for val1, val2 in zip(vector1, vector2)])
+    
 
 # Add 1 to 2
 def add(matrix1, matrix2):

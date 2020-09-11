@@ -42,7 +42,18 @@ def adam(errors):
     return 0.5*abs(tanh(4*errors.average()))
 
 # Returns the back errors
-def backErrors(loss, activation, valMatrix):
+def backErrors(loss, activation, valMatrix, shape):
     # Going to return the errors*sigmoids
-    pass
+    newMatrix = Matrix(arr=valMatrix)
+    newMatrix.flatten()
+    retMat = newMatrix.returnMatrix()[0]
+
+    mat_partial = [loss(val)*activation(val, deriv=True) for val in retMat]
+
+    newMat = Matrix(mat_partial)
+    
+    # Returns the data in the shaped data
+    newMat.reshape(shape[0], shape[1])
+
+    return newMat
 

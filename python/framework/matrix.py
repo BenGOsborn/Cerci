@@ -141,6 +141,25 @@ class Matrix:
 
         return avg
 
+    def pad(self, pad_up=0, pad_down=0, pad_left=0, pad_right=0, pad_val=0):
+        # I want to create a newly sized array and then for all the indexes in the range I want to shift them over by the horizontal and the vertical
+        size = self.size()
+        size_rows = size[0]
+        size_cols = size[1]
+
+        padded_size_rows = size_rows + pad_down + pad_up
+        padded_size_cols = size_cols + pad_left + pad_right
+
+        pad_init = [[pad_val for _ in range(padded_size_cols)] for _ in range(padded_size_rows)]
+
+        unpadded_mat = self.returnMatrix()
+        for y in range(size_rows):
+            for x in range(size_cols):
+                pad_init[y+pad_up][x+pad_left] = unpadded_mat[y][x]
+
+        self.__matrix = pad_init
+        self.validMatrix()
+
     def applyFunc(self, func):
         for y in range(len(self.__matrix)):
             for x in range(len(self.__matrix[0])):
@@ -165,10 +184,3 @@ class Matrix:
 
     def size(self):
         return [len(self.__matrix), len(self.__matrix[0])]
-
-
-mat = Matrix([[1, 2, 3], 
-              [4, 5, 6], 
-              [7, 8, 9]])
-mat.rotate()
-mat.print()

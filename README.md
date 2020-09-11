@@ -12,4 +12,3 @@
 * Have realtime analysis for fluent conversations
 
 ## :pushpin: TODO
-* Add a padding function to the matrix library

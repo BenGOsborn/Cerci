@@ -104,7 +104,24 @@ class Matrix:
                 
         self.__matrix = new_matrix
         self.validMatrix()
-            
+
+    def reshape(self, new_rows, new_cols):
+        old_size = self.size()
+        if (new_rows*new_cols != old_size[0]*old_size[1]): raise Exception(f"Matrix must have same size! Old rows: {old_size[0]} Old cols: {old_size[1]} | New rows: {new_rows} New cols: {new_cols}")
+        self.flatten()
+        mat_temp_reversed = self.returnMatrix()[0][::-1]
+
+        matrix_new = []
+        for _ in range(new_rows):
+            temp_row = []
+            for _ in range(new_cols):
+                val = mat_temp_reversed.pop()
+                temp_row.append(val)
+            matrix_new.append(temp_row)
+
+        self.__matrix = matrix_new
+        self.validMatrix()
+
     def transpose(self):
         new_matrix = [[0 for _ in range(len(self.__matrix))] for _ in range(len(self.__matrix[0]))]
 

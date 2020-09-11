@@ -14,3 +14,4 @@
 ## :pushpin: TODO
 * Add a padding function to the matrix library
 * Add a reshape function to the matrix library
+* Add a rotate by 180 function to the matrix library

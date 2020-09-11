@@ -15,9 +15,9 @@ def add(matrix1, matrix2):
     mat2 = matrix2.returnMatrix()
 
     matrixNew = []
-    for y in range(matrix1.size()[1]):
+    for y in range(matrix1.size()[0]):
         tempArr = []
-        for x in range(matrix1.size()[0]):
+        for x in range(matrix1.size()[1]):
             val = mat2[y][x] + mat1[y][x]
             tempArr.append(val)
         matrixNew.append(tempArr)
@@ -32,9 +32,9 @@ def subtract(matrix1, matrix2):
     mat2 = matrix2.returnMatrix()
 
     matrixNew = []
-    for y in range(matrix1.size()[1]):
+    for y in range(matrix1.size()[0]):
         tempArr = []
-        for x in range(matrix1.size()[0]):
+        for x in range(matrix1.size()[1]):
             val = mat1[y][x] - mat2[y][x]
             tempArr.append(val)
         matrixNew.append(tempArr)
@@ -161,9 +161,13 @@ class Matrix:
         self.validMatrix()
 
     def applyFunc(self, func):
-        for y in range(len(self.__matrix)):
-            for x in range(len(self.__matrix[0])):
-               self.__matrix[y][x] = func(self.__matrix[y][x])
+        size = self.size()
+        rows_num = size[0]
+        cols_num = size[1]
+
+        for y in range(rows_num):
+            for x in range(cols_num):
+                self.__matrix[y][x] = func(self.__matrix[y][x])
 
         self.validMatrix()
 

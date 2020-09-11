@@ -1,11 +1,11 @@
 # Takes the dot product of two input vectors
-def dot(vector1, vector2):
-    if ((len(vector1) == 1) and (len(vector1) == 1)):
-        if (len(vector1[0]) != len(vector2[0])): raise Exception(f"Vectors are not of same length! Length vector1[0]: {len(vector1[0])} | Length vector2[0]: {len(vector2[0])}")
-        return sum([val1*val2 for val1, val2 in zip(vector1[0], vector2[0])])
-    elif (len(vector1) != len(vector2)): raise Exception(f"Vectors are not of same length! Length vector1: {len(vector1)} | Length vector2: {len(vector2)}") 
-    return sum([val1*val2 for val1, val2 in zip(vector1, vector2)])
-    
+def dot(matrix1, matrix2):
+    if ((matrix1.size() != matrix2.size()) or (matrix1.size()[0] != 1)): raise Exception("Dot product failed!")
+
+    mat1 = matrix1.returnMatrix()[0]
+    mat2 = matrix2.returnMatrix()[0]
+
+    return sum([val1*val2 for val1, val2 in zip(mat1, mat2)])
 
 # Add 1 to 2
 def add(matrix1, matrix2):
@@ -67,7 +67,7 @@ def multiplyMatrices(matrix1, matrix2):
         tempArr = []
         for x in range(matrix2.size()[1]):
             splicedMat2 = [mat2[i][x] for i in range(matrix2.size()[0])]
-            val = dot(mat1[y], splicedMat2)
+            val = sum([val1*val2 for val1, val2 in zip(mat1[y], splicedMat2)])
             tempArr.append(val)
         matrixNew.append(tempArr)
 

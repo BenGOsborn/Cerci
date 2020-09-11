@@ -20,38 +20,33 @@ def softmax(val, vals=None, deriv=False):
     return exp(val)/sum([exp(x) for x in vals])
     
 # Loss functions
-def meanSquared(predicted_matrix, actual_matrix):
-    return subtract(actual_matrix, predicted_matrix)
+def meanSquared(predicted, actual):
+    return predicted-actual
 
-def crossEntropy(predicted_matrix, actual_matrix):
-    fn = lambda predicted, actual: -1*(actual/predicted) + (1-actual)/(1-predicted)
-
-    flat_pred = Matrix(arr=predicted_matrix)
-    flat_pred.flatten()
-    flat_act = Matrix(arr=actual_matrix)
-    flat_act.flatten()
-
-    matrix_new = [fn(pred, act) for pred, act in zip(flat_pred.returnMatrix()[0], flat_act.returnMatrix()[0])]
-    ret_matrix = Matrix(matrix_new)
-    ret_matrix.transpose()
-
-    return ret_matrix
+def crossEntropy(predicted, actual):
+    return -1*(actual/predicted) + (1-actual)/(1-predicted)
 
 # This is the ADAM learning rate paramater which will change depending on the error matrix it receives
 def adam(errors):
     return 0.5*abs(tanh(4*errors.average()))
 
 # Returns the back errors
-def backErrors(loss, activation, valMatrix, shape):
+def backErrors(loss, activation, predicted, training, shape):
     # Going to return the errors*sigmoids
-    newMatrix = Matrix(arr=valMatrix)
-    newMatrix.flatten()
-    retMat = newMatrix.returnMatrix()[0]
+    predObj = Matrix(arr=predicted.returnMatrix())
+    trainObj = Matrix(arr=training.returnMatrix())
 
-    mat_partial = [loss(val)*activation(val, deriv=True) for val in retMat]
+    predObj.flatten()
+    trainObj.flatten()
 
-    newMat = Matrix(mat_partial)
-    
+    predMat = predObj.returnMatrix()[0]
+    trainMat = trainObj.returnMatrix()[0]
+
+    # The loss function does not work here because its to work only for matrices
+    mat_partial = [loss(pred, act)*activation(pred, deriv=True) for pred, act in zip(predMat, trainMat)]
+
+    newMat = Matrix(arr=mat_partial)
+
     # Returns the data in the shaped data
     newMat.reshape(shape[0], shape[1])
 

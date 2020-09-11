@@ -148,8 +148,27 @@ class Matrix:
 
         self.validMatrix()
 
+    # Rotates the matrix by pi radians
+    def rotate(self):
+        rowsLen = self.size()[0] 
+        tempMat = self.returnMatrix()
+
+        for y in range(rowsLen):
+            tempMat[y] = tempMat[y][::-1]
+        new_mat = tempMat[::-1]
+
+        self.__matrix = new_mat
+        self.validMatrix()
+
     def returnMatrix(self):
         return self.__matrix
 
     def size(self):
         return [len(self.__matrix), len(self.__matrix[0])]
+
+
+mat = Matrix([[1, 2, 3], 
+              [4, 5, 6], 
+              [7, 8, 9]])
+mat.rotate()
+mat.print()

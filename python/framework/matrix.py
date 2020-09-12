@@ -81,12 +81,12 @@ class Matrix:
         except:
             self.__matrix = [self.__matrix]
 
-    def __init__(self, arr=False, dims=False):
+    def __init__(self, arr=False, dims=False, init=0):
         if (arr != False):
             self.__matrix = arr
             self.validMatrix()
         elif (dims != False):
-            self.__matrix = [[0.5 for _ in range(dims[1])] for _ in range(dims[0])] # Rows and columns (Rows is the height, colums is the row length)
+            self.__matrix = [[init for _ in range(dims[1])] for _ in range(dims[0])] # Rows and columns (Rows is the height, colums is the row length)
             self.validMatrix()
         else:
             raise Exception("Matrix requires parameter 'arr' or 'dims'!")

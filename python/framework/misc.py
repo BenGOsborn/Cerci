@@ -1,5 +1,5 @@
 from math import exp, tanh, log
-from matrix import Matrix, subtract
+from matrix import Matrix
 
 # Activation functions
 def sigmoid(x, vals=None, deriv=False):
@@ -27,8 +27,6 @@ def crossEntropy(predicted, actual):
     return -1*(actual/predicted) + (1-actual)/(1-predicted)
 
 # This is the ADAM learning rate paramater which will change depending on the error matrix it receives
-def adam(errors):
-    return 0.5*abs(tanh(4*errors.average()))
 
 # Returns the back errors
 def backErrors(loss, activation, predicted, training, shape):
@@ -52,3 +50,58 @@ def backErrors(loss, activation, predicted, training, shape):
 
     return newMat
 
+# Optimizers
+def applyMomentum(p_prev, beta1, gradient):
+    p = p_prev*beta1 + (1-beta1)*gradient
+    return p
+
+# This value should actually NEVER be negative what is going on then?
+def applyRMS(rms_prev, beta2, gradient):
+    rms = rms_prev*beta2 + (1-beta2)*(gradient**2)
+    return rms
+
+def applyCorrection(param, beta, iteration):
+    corrected = param/(1-beta**iteration)
+    return corrected
+
+# The params can be either the weight set or the bias set
+# Return a new set of values which should then be subtracted for ease of use
+def adam(pPrev, rmsPrev, gradients, beta1, beta2, epsilon, iteration):
+    # I have to return the un-adam and instead return the expontentially weight averages
+
+    gradRaw = gradients.returnMatrix()
+    pPrevRaw = pPrev.returnMatrix()
+    rmsPrevRaw = rmsPrev.returnMatrix()
+    gradSize = gradients.size()
+
+    # Now with this we can do a calculation for the new rms and the new momentums and then return those aswell as a matrix
+    pRaw = [] # Return this as matrix
+    rmsRaw = [] # Return this as matrix
+    adamRaw = []
+    for y in range(gradSize[0]):
+        tempArrP = []
+        tempArrRMS = []
+        tempArrAdam = []
+        for x in range(gradSize[1]):
+            momentum = applyMomentum(pPrevRaw[y][x], beta1, gradRaw[y][x])
+            rms = applyRMS(rmsPrevRaw[y][x], beta2, gradRaw[y][x])
+
+            tempArrP.append(momentum)
+            tempArrRMS.append(rms)
+
+            momentumCorrected = applyCorrection(momentum, beta1, iteration)
+            rmsCorrected = applyCorrection(rms, beta2, iteration)
+            # The RMS should actually never be negative
+            adam = momentumCorrected / (rmsCorrected**(0.5) + epsilon) # This must have generated a complex number, why?
+            tempArrAdam.append(adam)
+
+        pRaw.append(tempArrP)
+        rmsRaw.append(tempArrRMS)
+        adamRaw.append(tempArrAdam)
+
+    p = Matrix(arr=pRaw)
+    rms = Matrix(arr=rmsRaw)
+    adam = Matrix(arr=adamRaw)
+
+    # Returns the momentum, the rms and the adam
+    return p, rms, adam

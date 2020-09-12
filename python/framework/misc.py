@@ -28,8 +28,28 @@ def crossEntropy(predicted, actual):
     return -1*(actual/predicted) + (1-actual)/(1-predicted)
 
 # Returns the back errors
-def backErrors(loss, activation, predicted, training, shape):
-    # Going to return the errors*sigmoids
+def backErrors(activation, errors, predicted):
+    shape = predicted.size()
+
+    predObj = predicted.clone()
+    errorsObj = errors.clone()
+
+    predObj.flatten()
+    errorsObj.flatten()
+
+    predMat = predObj.returnMatrix()[0]
+    errorsMat = errorsObj.returnMatrix()[0]
+
+    # The loss function does not work here because its to work only for matrices
+    mat_partial = [error*activation(pred, deriv=True) for pred, error in zip(predMat, errorsMat)]
+    newMat = Matrix(arr=mat_partial)
+    newMat.reshape(shape[0], shape[1])
+
+    return newMat
+
+def getDifferences(loss, predicted, training):
+    shape = training.size()
+
     predObj = predicted.clone()
     trainObj = training.clone()
 
@@ -39,12 +59,8 @@ def backErrors(loss, activation, predicted, training, shape):
     predMat = predObj.returnMatrix()[0]
     trainMat = trainObj.returnMatrix()[0]
 
-    # The loss function does not work here because its to work only for matrices
-    mat_partial = [loss(pred, act)*activation(pred, deriv=True) for pred, act in zip(predMat, trainMat)]
-
-    newMat = Matrix(arr=mat_partial)
-
-    # Returns the data in the shaped data
+    mat_errors = [loss(pred, act) for pred, act in zip(predMat, trainMat)]
+    newMat = Matrix(arr=mat_errors)
     newMat.reshape(shape[0], shape[1])
 
     return newMat
@@ -53,7 +69,7 @@ def backErrors(loss, activation, predicted, training, shape):
 def dropout(out, dropout_rate):
     randArr = [False for _ in range(dropout_rate-1)]
     randArr.append(True)
-    out.applyFunc(lambda x: 0 if choice(randArr) else x)
+    out.applyFunc(lambda x: 0.001 if choice(randArr) else x)
 
 # Optimizers
 def applyMomentum(p_prev, beta1, gradient):

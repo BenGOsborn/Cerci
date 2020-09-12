@@ -26,6 +26,9 @@ def add(matrix1, matrix2):
 
 # Subtract 1 from 2
 def subtract(matrix1, matrix2):
+    matrix1.print()
+    matrix2.print()
+
     if (matrix1.size() != matrix2.size()): raise Exception(f"Matrices must be same size! Matrix size 1: {matrix1.size()} | Matrix size 2: {matrix2.size()}")
 
     mat1 = matrix1.returnMatrix()

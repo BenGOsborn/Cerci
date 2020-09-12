@@ -1,5 +1,5 @@
 import matrix
-from misc import dropout
+from misc import dropout, backErrors
 # import misc
 
 class FeedForward:
@@ -30,7 +30,7 @@ class FeedForward:
         out.applyFunc(lambda x: self.activation_func(x, vals=outCpy)) # Done for consistency reasons when there is need for a 'deriv=True' parsed through
 
         # So now I just need a random probability function that will determine if the neuron should drop out
-        if dropout > 0:
+        if dropout_rate > 0:
             dropout(out, dropout_rate)
             
         return out
@@ -43,11 +43,16 @@ class FeedForward:
         self.rmsBias = matrix.Matrix(dims=self.bias.size(), init=0)
         self.iteration = 0
 
-    def train(self, input_set, loss_func, errors, optimizer, learn_rate=0.5):
+    def train(self, input_set, predicted, errors, optimizer, learn_rate=0.5):
         # I think I rather want to do the prediction at the start of the training, where I also gather the outputs for each layer which act as the inputs for each node, and then I have the predictions
         # This means we do the training set on the pre iteration and then lead with that as the errors
         # This also means we do the training error from the first layer on the pre iteration
         self.iteration += 1
+
+        # This gets rid of the errors*the other errors thing
+        # I should always be doing the back errors with the derivative, its just for the first one do a substraction
+
+        errors = backErrors(self.activation_func, errors, predicted)
 
         inputTransposed = matrix.Matrix(arr=input_set.returnMatrix())
         inputTransposed.transpose()
@@ -70,5 +75,5 @@ class FeedForward:
         h_Error = matrix.multiplyMatrices(transposeWeights, errors)
         return h_Error
 
-    def getWeights(self):
-        return self.weights, self.bias
+    def returnNetwork(self):
+        return self.weights, self.bias, self.activation_func

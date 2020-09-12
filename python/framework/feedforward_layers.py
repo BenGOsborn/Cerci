@@ -35,19 +35,15 @@ class FeedForward:
         self.rmsBias = matrix.Matrix(dims=self.bias.size(), init=0)
         self.iteration = 0
 
-    def train(self, input_set, loss_func, training_set=False, hidden_errors=False):
+    def train(self, input_set, loss_func, training_set=False, hidden_errors=False, optimizer=misc.adam):
         self.iteration += 1
 
-        # Maybe ill ad an optimizer implementation in here to be able to switch optimizers based on the previous function
-
-        predicted = self.feedForward(input_set)
-
         if (training_set != False):
+            predicted = self.feedForward(input_set)
             errors = misc.backErrors(loss_func, self.activation_func, predicted, training_set, predicted.size())       
         elif (hidden_errors != False):
             errors = hidden_errors
 
-        # Implement adam here
         learn_rate = 0.5
 
         inputTransposed = matrix.Matrix(arr=input_set.returnMatrix())
@@ -55,12 +51,12 @@ class FeedForward:
 
         w_AdjustmentsRaw = matrix.multiplyMatrices(errors, inputTransposed)
 
-        w_Adjustments, self.pWeight, self.rmsWeight = misc.adam(self.pWeight, self.rmsWeight, w_AdjustmentsRaw, self.beta1, self.beta2, self.epsilon, self.iteration)
+        self.pWeight, self.rmsWeight, w_Adjustments = optimizer(self.pWeight, self.rmsWeight, w_AdjustmentsRaw, self.beta1, self.beta2, self.epsilon, self.iteration)
         w_Adjustments = matrix.multiplyScalar(w_Adjustments, learn_rate)
         w_New = matrix.subtract(self.weights, w_Adjustments)
         self.weights = w_New
 
-        b_Adjustments, self.pBias, self.rmsBias = misc.adam(self.pBias, self.rmsBias, errors, self.beta1, self.beta2, self.epsilon, self.iteration)
+        self.pBias, self.rmsBias, b_Adjustments = misc.adam(self.pBias, self.rmsBias, errors, self.beta1, self.beta2, self.epsilon, self.iteration)
         b_Adjustments = matrix.multiplyScalar(errors, learn_rate)
         b_New = matrix.subtract(self.bias, b_Adjustments)
         self.bias = b_New
@@ -93,7 +89,7 @@ training = matrix.Matrix([[1],
 
 brain = FeedForward(weights, bias, misc.sigmoid)
 
-for _ in range(9):
+for _ in range(3):
     brain.train(inputs, misc.crossEntropy, training_set=training)
 
 brain.feedForward(inputs).print()

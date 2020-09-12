@@ -64,10 +64,12 @@ def applyCorrection(param, beta, iteration):
     corrected = param/(1-beta**iteration)
     return corrected
 
-# The params can be either the weight set or the bias set
-# Return a new set of values which should then be subtracted for ease of use
+# Maybe its not applying it correctly in the feedForward
+
+# If I add other optimizers Im going to have to map the optimizers to have the same imput parameters with 'n=b' notation
+
 def adam(pPrev, rmsPrev, gradients, beta1, beta2, epsilon, iteration):
-    # I have to return the un-adam and instead return the expontentially weight averages
+    # Define functions up here
 
     gradRaw = gradients.returnMatrix()
     pPrevRaw = pPrev.returnMatrix()
@@ -84,7 +86,7 @@ def adam(pPrev, rmsPrev, gradients, beta1, beta2, epsilon, iteration):
         tempArrAdam = []
         for x in range(gradSize[1]):
             momentum = applyMomentum(pPrevRaw[y][x], beta1, gradRaw[y][x])
-            rms = applyRMS(rmsPrevRaw[y][x], beta2, gradRaw[y][x])
+            rms = applyRMS(rmsPrevRaw[y][x], beta2, gradRaw[y][x]) # Apply RMS here
 
             tempArrP.append(momentum)
             tempArrRMS.append(rms)

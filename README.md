@@ -12,3 +12,4 @@
 * Have realtime analysis for fluent conversations
 
 ## :pushpin: TODO
+* Find out why RMS is returning negative values

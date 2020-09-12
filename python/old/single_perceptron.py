@@ -1,4 +1,4 @@
-from blocks.resources import relu, dot
+from resources import relu, dot
 
 class Brain:
     def __init__(self, weights, bias):

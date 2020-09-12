@@ -141,6 +141,9 @@ class Matrix:
 
         return avg
 
+    def clone(self):
+        return Matrix(arr=self.__matrix)
+
     def pad(self, pad_up=0, pad_down=0, pad_left=0, pad_right=0, pad_val=0):
         # I want to create a newly sized array and then for all the indexes in the range I want to shift them over by the horizontal and the vertical
         size = self.size()

@@ -1,5 +1,5 @@
 import matrix
-import misc
+# import misc
 
 class FeedForward:
 
@@ -35,16 +35,11 @@ class FeedForward:
         self.rmsBias = matrix.Matrix(dims=self.bias.size(), init=0)
         self.iteration = 0
 
-    def train(self, input_set, loss_func, training_set=False, hidden_errors=False, optimizer=misc.adam):
+    def train(self, input_set, loss_func, errors, optimizer, learn_rate=0.5):
+        # I think I rather want to do the prediction at the start of the training, where I also gather the outputs for each layer which act as the inputs for each node, and then I have the predictions
+        # This means we do the training set on the pre iteration and then lead with that as the errors
+        # This also means we do the training error from the first layer on the pre iteration
         self.iteration += 1
-
-        if (training_set != False):
-            predicted = self.feedForward(input_set)
-            errors = misc.backErrors(loss_func, self.activation_func, predicted, training_set, predicted.size())       
-        elif (hidden_errors != False):
-            errors = hidden_errors
-
-        learn_rate = 0.5
 
         inputTransposed = matrix.Matrix(arr=input_set.returnMatrix())
         inputTransposed.transpose()
@@ -56,7 +51,7 @@ class FeedForward:
         w_New = matrix.subtract(self.weights, w_Adjustments)
         self.weights = w_New
 
-        self.pBias, self.rmsBias, b_Adjustments = misc.adam(self.pBias, self.rmsBias, errors, self.beta1, self.beta2, self.epsilon, self.iteration)
+        self.pBias, self.rmsBias, b_Adjustments = optimizer(self.pBias, self.rmsBias, errors, self.beta1, self.beta2, self.epsilon, self.iteration)
         b_Adjustments = matrix.multiplyScalar(errors, learn_rate)
         b_New = matrix.subtract(self.bias, b_Adjustments)
         self.bias = b_New
@@ -69,27 +64,3 @@ class FeedForward:
 
     def getWeights(self):
         return self.weights, self.bias
-
-weights = matrix.Matrix([[0.5, 0.5, 0.5, 0.5], 
-                         [0.5, 0.5, 0.5, 0.5], 
-                         [0.5, 0.5, 0.5, 0.5]])
-                         
-bias = matrix.Matrix([[0.5],
-                      [0.5],
-                      [0.5]])
-
-inputs = matrix.Matrix([[1],
-                        [0],
-                        [1],
-                        [0]])
-
-training = matrix.Matrix([[1],
-                        [0],
-                        [0]])
-
-brain = FeedForward(weights, bias, misc.sigmoid)
-
-for _ in range(3):
-    brain.train(inputs, misc.crossEntropy, training_set=training)
-
-brain.feedForward(inputs).print()

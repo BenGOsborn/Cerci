@@ -1,4 +1,5 @@
 import matrix
+from misc import dropout
 # import misc
 
 class FeedForward:
@@ -18,13 +19,20 @@ class FeedForward:
         self.rmsBias = matrix.Matrix(dims=bias_set.size(), init=0)
         self.iteration = 0 # This has to be reinited at the start of every training session
 
-    def feedForward(self, inputs):
+    def feedForward(self, inputs, dropout_rate=0):
         multiplied = matrix.multiplyMatrices(self.weights, inputs)
         out = matrix.add(multiplied, self.bias)
+
+        # Now I just need to add dropout here which will randomly set one of the values to be 0
+        # Batch will be implemented in this layer aswell
 
         outCpy = matrix.Matrix(out.returnMatrix())
         out.applyFunc(lambda x: self.activation_func(x, vals=outCpy)) # Done for consistency reasons when there is need for a 'deriv=True' parsed through
 
+        # So now I just need a random probability function that will determine if the neuron should drop out
+        if dropout > 0:
+            dropout(out, dropout_rate)
+            
         return out
 
     # This clears the momentum buffer when new sets need to be trained on the model

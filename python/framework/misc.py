@@ -1,5 +1,6 @@
 from math import exp, tanh, log
 from matrix import Matrix
+from random import choice
 
 # Activation functions
 def sigmoid(x, vals=None, deriv=False):
@@ -47,6 +48,12 @@ def backErrors(loss, activation, predicted, training, shape):
     newMat.reshape(shape[0], shape[1])
 
     return newMat
+
+# Dropout
+def dropout(out, dropout_rate):
+    randArr = [False for _ in range(dropout_rate-1)]
+    randArr.append(True)
+    out.applyFunc(lambda x: 0 if choice(randArr) else x)
 
 # Optimizers
 def applyMomentum(p_prev, beta1, gradient):

@@ -12,3 +12,6 @@
 * Have realtime analysis for fluent conversations
 
 ## :pushpin: TODO
+* Check the RMS and the momentum values for strange zero numbers
+* Find out whats causing the fail to update properly
+* Check the network on smaller layers

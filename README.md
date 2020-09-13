@@ -13,3 +13,4 @@
 
 ## :pushpin: TODO
 * Add batch normalization to the network
+* Add weight initializing functions using the proper weight generation techniques

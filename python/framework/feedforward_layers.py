@@ -4,10 +4,11 @@ from misc import dropout, backErrors
 
 class FeedForward:
 
-    def __init__(self, weight_set, bias_set, activation_func, beta1=0.9, beta2=0.999, epsilon=10e-8):
+    def __init__(self, weight_set, bias_set, activation_func, dropout_rate=0, beta1=0.9, beta2=0.999, epsilon=10e-8):
         self.weights = weight_set
         self.bias = bias_set
         self.activation_func = activation_func
+        self.dropout_rate = dropout_rate
 
         self.beta1 = beta1
         self.beta2 = beta2
@@ -19,19 +20,15 @@ class FeedForward:
         self.rmsBias = matrix.Matrix(dims=bias_set.size(), init=0)
         self.iteration = 0 # This has to be reinited at the start of every training session
 
-    def feedForward(self, inputs, dropout_rate=0):
+    def feedForward(self, inputs, training=False):
         multiplied = matrix.multiplyMatrices(self.weights, inputs)
         out = matrix.add(multiplied, self.bias)
-
-        # Now I just need to add dropout here which will randomly set one of the values to be 0
-        # Batch will be implemented in this layer aswell
 
         outCpy = matrix.Matrix(out.returnMatrix())
         out.applyFunc(lambda x: self.activation_func(x, vals=outCpy)) # Done for consistency reasons when there is need for a 'deriv=True' parsed through
 
-        # So now I just need a random probability function that will determine if the neuron should drop out
-        if dropout_rate > 0:
-            dropout(out, dropout_rate)
+        if ((self.dropout_rate > 0) and (training == True)):
+            dropout(out, self.dropout_rate)
             
         return out
 

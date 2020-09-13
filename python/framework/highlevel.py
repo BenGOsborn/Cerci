@@ -9,19 +9,19 @@ class Brain:
         self.__layers = []
 
         for layer in layers:
-            self.__layers.append(layer[0](layer[1], layer[2], layer[3]))
+            self.__layers.append(layer[0](layer[1], layer[2], layer[3], dropout_rate=layer[4]))
 
-    def predict(self, inputs, dropout_rate=0):
+    def predict(self, inputs):
         feed = inputs
         for layer in self.__layers:
-            feed = layer.feedForward(feed, dropout_rate)
+            feed = layer.feedForward(feed)
         return feed
 
-    def train(self, input_set, training_set, loss_func=misc.crossEntropy, optimizer=misc.adam, learn_rate=0.3, dropout_rate=4):
+    def train(self, input_set, training_set, loss_func=misc.crossEntropy, optimizer=misc.adam, learn_rate=0.5):
         hiddens = [input_set]
         feed = input_set
         for layer in self.__layers:
-            feed = layer.feedForward(feed, dropout_rate=dropout_rate)
+            feed = layer.feedForward(feed, training=True)
             hiddens.append(feed)
 
         l_Reversed = self.__layers[::-1]
@@ -54,47 +54,15 @@ training4 = Matrix(arr=[[1, 0]])
 training4.transpose()
 
 brain = Brain(
-    [ff.FeedForward, weights1, bias1, misc.relu],
-    [ff.FeedForward, weights2, bias2, misc.sigmoid]
+    [ff.FeedForward, weights1, bias1, misc.relu, 0],
+    [ff.FeedForward, weights2, bias2, misc.sigmoid, 0]
 )
-for _ in range(1000):
-    brain.train(inputs1, training1, loss_func=misc.crossEntropy)
-    brain.train(inputs2, training2, loss_func=misc.crossEntropy)
-    brain.train(inputs3, training3, loss_func=misc.crossEntropy)
-    brain.train(inputs4, training4, loss_func=misc.crossEntropy)
-# What is being entered into the softmax and why are the values exploding?
-# Must be a problem with this function because it works with the manual one created below
-# Why does crossentropy not work with sigmoid output? It just leads to AN EXPLODING OUTPUT PROBLEM - PROBABLY WHY IT ISNT WORKING???
-# I think the relu is not being trained properly which means the previous layers - hence the error feed back in is not working properly %%%%%%%%%%%%%%%%%%%%%
-brain.predict(inputs3).print()
+for _ in range(100):
+    brain.train(inputs1, training1, loss_func=misc.meanSquared)
+    brain.train(inputs2, training2, loss_func=misc.meanSquared)
+    brain.train(inputs3, training3, loss_func=misc.meanSquared)
+    brain.train(inputs4, training4, loss_func=misc.meanSquared)
 
-# layer1 = ff.FeedForward(weights1, bias1, misc.relu)
-# layer2 = ff.FeedForward(weights2, bias2, misc.sigmoid)
-
-# for _ in range(15):
-#     prediction1 = layer1.feedForward(inputs1)
-#     prediction2 = layer2.feedForward(prediction1)
-#     errors = misc.getDifferences(misc.crossEntropy, prediction2, training1)
-#     errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
-#     layer1.train(inputs1, prediction1, errors, misc.adam, learn_rate=0.5)
-
-#     prediction1 = layer1.feedForward(inputs2)
-#     prediction2 = layer2.feedForward(prediction1)
-#     errors = misc.getDifferences(misc.crossEntropy, prediction2, training2)
-#     errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
-#     layer1.train(inputs2, prediction1, errors, misc.adam, learn_rate=0.5)
-
-#     prediction1 = layer1.feedForward(inputs3)
-#     prediction2 = layer2.feedForward(prediction1)
-#     errors = misc.getDifferences(misc.crossEntropy, prediction2, training3)
-#     errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
-#     layer1.train(inputs3, prediction1, errors, misc.adam, learn_rate=0.5)
-
-#     prediction1 = layer1.feedForward(inputs4)
-#     prediction2 = layer2.feedForward(prediction1)
-#     errors = misc.getDifferences(misc.crossEntropy, prediction2, training4)
-#     errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
-#     layer1.train(inputs4, prediction1, errors, misc.adam, learn_rate=0.5)
-
-# feed = layer1.feedForward(inputs4)
-# layer2.feedForward(feed).print()
+prediction = brain.predict(inputs4)
+prediction.transpose()
+prediction.print()

@@ -18,7 +18,6 @@ def softmax(val, vals=None, deriv=False):
         return val*(1-val)
     vals.flatten()
     vals = vals.returnMatrix()[0]
-    print(vals)
     return exp(val)/sum([exp(x) for x in vals])
     
 # Loss functions
@@ -75,7 +74,7 @@ def getDifferences(loss, predicted, training):
 def dropout(out, dropout_rate):
     randArr = [False for _ in range(dropout_rate-1)]
     randArr.append(True)
-    out.applyFunc(lambda x: 0.001 if choice(randArr) else x)
+    out.applyFunc(lambda x: 0.01 if choice(randArr) else x)
 
 # Optimizers
 def applyMomentum(p_prev, beta1, gradient):

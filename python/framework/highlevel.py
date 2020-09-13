@@ -31,6 +31,12 @@ class Brain:
         for i, layer in enumerate(l_Reversed):
             errors = layer.train(h_Reversed[i+1], h_Reversed[i], errors, optimizer, learn_rate=learn_rate)
 
+    def returnModel(self):
+        returnArray = []
+        for layer in self.__layers:
+            returnArray.append(layer.returnNetwork())
+        return returnArray
+
 weights1 = Matrix(dims=[2, 2], init="random")
 bias1 = Matrix(dims=[2, 1], init="random")
 weights2 = Matrix(dims=[2, 2], init="random")
@@ -55,14 +61,14 @@ training4.transpose()
 
 brain = Brain(
     [ff.FeedForward, weights1, bias1, misc.relu, 0],
-    [ff.FeedForward, weights2, bias2, misc.sigmoid, 0]
+    [ff.FeedForward, weights2, bias2, misc.softmax, 0]
 )
 for _ in range(100):
-    brain.train(inputs1, training1, loss_func=misc.meanSquared)
-    brain.train(inputs2, training2, loss_func=misc.meanSquared)
-    brain.train(inputs3, training3, loss_func=misc.meanSquared)
-    brain.train(inputs4, training4, loss_func=misc.meanSquared)
+    brain.train(inputs1, training1, loss_func=misc.crossEntropy)
+    brain.train(inputs2, training2, loss_func=misc.crossEntropy)
+    brain.train(inputs3, training3, loss_func=misc.crossEntropy)
+    brain.train(inputs4, training4, loss_func=misc.crossEntropy)
 
-prediction = brain.predict(inputs4)
+prediction = brain.predict(inputs3)
 prediction.transpose()
 prediction.print()

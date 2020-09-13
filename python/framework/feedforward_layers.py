@@ -73,5 +73,5 @@ class FeedForward:
         return h_Error
 
     def returnNetwork(self):
-        return self.weights, self.bias, self.activation_func
+        return self.weights, self.bias
 

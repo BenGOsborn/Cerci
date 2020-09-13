@@ -18,6 +18,7 @@ def softmax(val, vals=None, deriv=False):
         return val*(1-val)
     vals.flatten()
     vals = vals.returnMatrix()[0]
+    print(vals)
     return exp(val)/sum([exp(x) for x in vals])
     
 # Loss functions
@@ -25,6 +26,11 @@ def meanSquared(predicted, actual):
     return predicted-actual
 
 def crossEntropy(predicted, actual):
+    # This should not need to be corrected really
+    if (predicted == 1): # Fixes python auto rounding to 1
+        predicted = 0.99999
+    elif (predicted == 0): # Fixes python auto rounding to 0
+        predicted = 0.00001
     return -1*(actual/predicted) + (1-actual)/(1-predicted)
 
 # Returns the back errors

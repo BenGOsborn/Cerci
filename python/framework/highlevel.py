@@ -17,8 +17,8 @@ class Brain:
             feed = layer.feedForward(feed, dropout_rate)
         return feed
 
-    def train(self, input_set, training_set, loss_func, optimizer, learn_rate, dropout_rate):
-        hiddens = []
+    def train(self, input_set, training_set, loss_func=misc.crossEntropy, optimizer=misc.adam, learn_rate=0.3, dropout_rate=4):
+        hiddens = [input_set]
         feed = input_set
         for layer in self.__layers:
             feed = layer.feedForward(feed, dropout_rate=dropout_rate)
@@ -29,7 +29,7 @@ class Brain:
 
         errors = misc.getDifferences(loss_func, feed, training_set)
         for i, layer in enumerate(l_Reversed):
-            errors = layer.train(h_Reversed[i-1], h_Reversed[i], errors, optimizer, learn_rate=learn_rate)
+            errors = layer.train(h_Reversed[i+1], h_Reversed[i], errors, optimizer, learn_rate=learn_rate)
 
 weights1 = Matrix(dims=[2, 2], init="random")
 bias1 = Matrix(dims=[2, 1], init="random")
@@ -42,44 +42,59 @@ training1 = Matrix(arr=[[1, 0]])
 training1.transpose()
 inputs2 = Matrix(arr=[[0, 1]])
 inputs2.transpose()
-training2 = Matrix(arr=[[0, 1]])
+training2 = Matrix(arr=[[1, 0]])
 training2.transpose()
 inputs3 = Matrix(arr=[[1, 1]])
 inputs3.transpose()
-training3 = Matrix(arr=[[1, 1]])
+training3 = Matrix(arr=[[0, 1]])
 training3.transpose()
 inputs4 = Matrix(arr=[[0, 0]])
 inputs4.transpose()
-training4 = Matrix(arr=[[0, 0]])
+training4 = Matrix(arr=[[1, 0]])
 training4.transpose()
 
-layer1 = ff.FeedForward(weights1, bias1, misc.relu)
-layer2 = ff.FeedForward(weights2, bias2, misc.sigmoid)
+brain = Brain(
+    [ff.FeedForward, weights1, bias1, misc.relu],
+    [ff.FeedForward, weights2, bias2, misc.sigmoid]
+)
+for _ in range(1000):
+    brain.train(inputs1, training1, loss_func=misc.crossEntropy)
+    brain.train(inputs2, training2, loss_func=misc.crossEntropy)
+    brain.train(inputs3, training3, loss_func=misc.crossEntropy)
+    brain.train(inputs4, training4, loss_func=misc.crossEntropy)
+# What is being entered into the softmax and why are the values exploding?
+# Must be a problem with this function because it works with the manual one created below
+# Why does crossentropy not work with sigmoid output? It just leads to AN EXPLODING OUTPUT PROBLEM - PROBABLY WHY IT ISNT WORKING???
+# I think the relu is not being trained properly which means the previous layers - hence the error feed back in is not working properly %%%%%%%%%%%%%%%%%%%%%
+brain.predict(inputs3).print()
 
-for _ in range(15):
-    prediction1 = layer1.feedForward(inputs1)
-    prediction2 = layer2.feedForward(prediction1)
-    errors = misc.getDifferences(misc.crossEntropy, prediction2, training1)
-    errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
-    layer1.train(inputs1, prediction1, errors, misc.adam, learn_rate=0.5)
+# layer1 = ff.FeedForward(weights1, bias1, misc.relu)
+# layer2 = ff.FeedForward(weights2, bias2, misc.sigmoid)
 
-    prediction1 = layer1.feedForward(inputs2)
-    prediction2 = layer2.feedForward(prediction1)
-    errors = misc.getDifferences(misc.crossEntropy, prediction2, training2)
-    errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
-    layer1.train(inputs2, prediction1, errors, misc.adam, learn_rate=0.5)
+# for _ in range(15):
+#     prediction1 = layer1.feedForward(inputs1)
+#     prediction2 = layer2.feedForward(prediction1)
+#     errors = misc.getDifferences(misc.crossEntropy, prediction2, training1)
+#     errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
+#     layer1.train(inputs1, prediction1, errors, misc.adam, learn_rate=0.5)
 
-    prediction1 = layer1.feedForward(inputs3)
-    prediction2 = layer2.feedForward(prediction1)
-    errors = misc.getDifferences(misc.crossEntropy, prediction2, training3)
-    errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
-    layer1.train(inputs3, prediction1, errors, misc.adam, learn_rate=0.5)
+#     prediction1 = layer1.feedForward(inputs2)
+#     prediction2 = layer2.feedForward(prediction1)
+#     errors = misc.getDifferences(misc.crossEntropy, prediction2, training2)
+#     errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
+#     layer1.train(inputs2, prediction1, errors, misc.adam, learn_rate=0.5)
 
-    prediction1 = layer1.feedForward(inputs4)
-    prediction2 = layer2.feedForward(prediction1)
-    errors = misc.getDifferences(misc.crossEntropy, prediction2, training4)
-    errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
-    layer1.train(inputs4, prediction1, errors, misc.adam, learn_rate=0.5)
+#     prediction1 = layer1.feedForward(inputs3)
+#     prediction2 = layer2.feedForward(prediction1)
+#     errors = misc.getDifferences(misc.crossEntropy, prediction2, training3)
+#     errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
+#     layer1.train(inputs3, prediction1, errors, misc.adam, learn_rate=0.5)
 
-feed = layer1.feedForward(inputs4)
-layer2.feedForward(feed).print()
+#     prediction1 = layer1.feedForward(inputs4)
+#     prediction2 = layer2.feedForward(prediction1)
+#     errors = misc.getDifferences(misc.crossEntropy, prediction2, training4)
+#     errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
+#     layer1.train(inputs4, prediction1, errors, misc.adam, learn_rate=0.5)
+
+# feed = layer1.feedForward(inputs4)
+# layer2.feedForward(feed).print()

@@ -15,3 +15,4 @@
 * Check the RMS and the momentum values for strange zero numbers
 * Find out whats causing the fail to update properly
 * Check the network on smaller layers
+* Find out why the relu layers are not being trained properly and leading to an exploding output

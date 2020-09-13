@@ -1,3 +1,5 @@
+from random import random
+
 # Takes the dot product of two input vectors
 def dot(matrix1, matrix2):
     if ((matrix1.size() != matrix2.size()) or (matrix1.size()[0] != 1)): raise Exception("Dot product failed!")
@@ -26,9 +28,6 @@ def add(matrix1, matrix2):
 
 # Subtract 1 from 2
 def subtract(matrix1, matrix2):
-    matrix1.print()
-    matrix2.print()
-
     if (matrix1.size() != matrix2.size()): raise Exception(f"Matrices must be same size! Matrix size 1: {matrix1.size()} | Matrix size 2: {matrix2.size()}")
 
     mat1 = matrix1.returnMatrix()
@@ -89,7 +88,7 @@ class Matrix:
             self.__matrix = arr
             self.validMatrix()
         elif (dims != False):
-            self.__matrix = [[init for _ in range(dims[1])] for _ in range(dims[0])] # Rows and columns (Rows is the height, colums is the row length)
+            self.__matrix = [[init if init != "random" else random() for _ in range(dims[1])] for _ in range(dims[0])] # Rows and columns (Rows is the height, colums is the row length)
             self.validMatrix()
         else:
             raise Exception("Matrix requires parameter 'arr' or 'dims'!")

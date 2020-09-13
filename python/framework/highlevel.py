@@ -31,38 +31,55 @@ class Brain:
         for i, layer in enumerate(l_Reversed):
             errors = layer.train(h_Reversed[i-1], h_Reversed[i], errors, optimizer, learn_rate=learn_rate)
 
-weights1 = Matrix(dims=[4, 4], init=0.5)
-bias1 = Matrix(dims=[4, 1], init=0.5)
+weights1 = Matrix(dims=[2, 2], init="random")
+bias1 = Matrix(dims=[2, 1], init="random")
+weights2 = Matrix(dims=[2, 2], init="random")
+bias2 = Matrix(dims=[2, 1], init="random")
 
-weights2 = Matrix(dims=[3, 4], init=0.5)
-bias2 = Matrix(dims=[3, 1], init=0.5)
+inputs1 = Matrix(arr=[[1, 0]])
+inputs1.transpose()
+training1 = Matrix(arr=[[1, 0]])
+training1.transpose()
+inputs2 = Matrix(arr=[[0, 1]])
+inputs2.transpose()
+training2 = Matrix(arr=[[0, 1]])
+training2.transpose()
+inputs3 = Matrix(arr=[[1, 1]])
+inputs3.transpose()
+training3 = Matrix(arr=[[1, 1]])
+training3.transpose()
+inputs4 = Matrix(arr=[[0, 0]])
+inputs4.transpose()
+training4 = Matrix(arr=[[0, 0]])
+training4.transpose()
 
-brain = Brain([ff.FeedForward, weights1, bias1, misc.relu], 
-              [ff.FeedForward, weights2, bias2, misc.softmax])
+layer1 = ff.FeedForward(weights1, bias1, misc.relu)
+layer2 = ff.FeedForward(weights2, bias2, misc.sigmoid)
 
-inputs = Matrix(arr=[[1, 1, 1, 1],
-                     [0, 0, 1, 1],
-                     [0, 0, 0, 0]])
+for _ in range(15):
+    prediction1 = layer1.feedForward(inputs1)
+    prediction2 = layer2.feedForward(prediction1)
+    errors = misc.getDifferences(misc.crossEntropy, prediction2, training1)
+    errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
+    layer1.train(inputs1, prediction1, errors, misc.adam, learn_rate=0.5)
 
-training = Matrix(arr=[[1, 0, 0],
-                       [0, 1, 0],
-                       [0, 0, 1]])
+    prediction1 = layer1.feedForward(inputs2)
+    prediction2 = layer2.feedForward(prediction1)
+    errors = misc.getDifferences(misc.crossEntropy, prediction2, training2)
+    errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
+    layer1.train(inputs2, prediction1, errors, misc.adam, learn_rate=0.5)
 
-input_raw = inputs.returnMatrix()
-training_raw = training.returnMatrix()
+    prediction1 = layer1.feedForward(inputs3)
+    prediction2 = layer2.feedForward(prediction1)
+    errors = misc.getDifferences(misc.crossEntropy, prediction2, training3)
+    errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
+    layer1.train(inputs3, prediction1, errors, misc.adam, learn_rate=0.5)
 
-# Something has gone very wrong here when we try to train it for multiple values, why?
+    prediction1 = layer1.feedForward(inputs4)
+    prediction2 = layer2.feedForward(prediction1)
+    errors = misc.getDifferences(misc.crossEntropy, prediction2, training4)
+    errors = layer2.train(prediction1, prediction2, errors, misc.adam, learn_rate=0.5)
+    layer1.train(inputs4, prediction1, errors, misc.adam, learn_rate=0.5)
 
-for _ in range(100):
-    for i in range(len(input_raw)):
-        put, train = Matrix(arr=input_raw[i]), Matrix(arr=training_raw[i])
-        put.transpose()
-        train.transpose()
-
-        brain.train(put, train, misc.meanSquared, misc.adam, 0.05, 10000)
-
-test_input = Matrix(arr=inputs.returnMatrix()[0])
-test_input.transpose()
-brain.predict(test_input).print()
-
-# I think I need to do a big test based on a first layer and then that way I can check to see if something else is going wrong
+feed = layer1.feedForward(inputs4)
+layer2.feedForward(feed).print()

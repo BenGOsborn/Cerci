@@ -1,7 +1,7 @@
 import matrix
 from misc import backErrors
 
-class FeedForward:
+class FullyConnected:
 
     def __init__(self, weight_set, bias_set, activation_func):
         self.weights = weight_set

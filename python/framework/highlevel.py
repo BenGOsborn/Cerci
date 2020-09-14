@@ -1,4 +1,4 @@
-import feedforward_layers as ff
+import fullyconnected as fc
 import misc
 from matrix import Matrix, subtract
 
@@ -48,7 +48,7 @@ inputs4 = Matrix(arr=[[0, 0]]).transpose()
 training4 = Matrix(arr=[[0]]).transpose()
 
 brain = Brain(
-    [ff.FeedForward, weights1, bias1, misc.sigmoid],
+    [fc.FullyConnected, weights1, bias1, misc.sigmoid],
 )
 
 for _ in range(1000):

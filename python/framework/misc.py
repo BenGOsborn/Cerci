@@ -69,11 +69,7 @@ def applyCorrection(param, beta, iteration):
     return corrected
 
 # If I add other optimizers Im going to have to map the optimizers to have the same imput parameters with 'n=b' notation
-def adam(pPrev, rmsPrev, gradients, iteration):
-    beta1 = 0.9
-    beta2 = 0.999
-    epsilon = 10e-8
-
+def adam(pPrev, rmsPrev, gradients, iteration, beta1=0.9, beta2=0.999, epsilon=10e-8):
     gradRaw = gradients.returnMatrix()
     pPrevRaw = pPrev.returnMatrix()
     rmsPrevRaw = rmsPrev.returnMatrix()

@@ -3,13 +3,11 @@ import misc
 from matrix import Matrix, subtract
 
 class Brain:
-    # Each layer is the layer type, weights for the layer, bias for the layer, activation function for the layer
-    # This does not take into consideration the beta1, beta2 and epsilon params for now
     def __init__(self, *layers):
         self.__layers = []
 
         for layer in layers:
-            self.__layers.append(layer[0](layer[1], layer[2], layer[3], dropout_rate=layer[4]))
+            self.__layers.append(layer[0](layer[1], layer[2], layer[3]))
 
     def predict(self, inputs):
         feed = inputs
@@ -37,38 +35,27 @@ class Brain:
             returnArray.append(layer.returnNetwork())
         return returnArray
 
-weights1 = Matrix(dims=[2, 2], init="random")
-bias1 = Matrix(dims=[2, 1], init="random")
-weights2 = Matrix(dims=[2, 2], init="random")
-bias2 = Matrix(dims=[2, 1], init="random")
+weights1 = Matrix(dims=[1, 2], init="random")
+bias1 = Matrix(dims=[1, 1], init="random")
 
-inputs1 = Matrix(arr=[[1, 0]])
-inputs1.transpose()
-training1 = Matrix(arr=[[1, 0]])
-training1.transpose()
-inputs2 = Matrix(arr=[[0, 1]])
-inputs2.transpose()
-training2 = Matrix(arr=[[1, 0]])
-training2.transpose()
-inputs3 = Matrix(arr=[[1, 1]])
-inputs3.transpose()
-training3 = Matrix(arr=[[0, 1]])
-training3.transpose()
-inputs4 = Matrix(arr=[[0, 0]])
-inputs4.transpose()
-training4 = Matrix(arr=[[1, 0]])
-training4.transpose()
+inputs1 = Matrix(arr=[[1, 0]]).transpose()
+training1 = Matrix(arr=[[0]]).transpose()
+inputs2 = Matrix(arr=[[0, 1]]).transpose()
+training2 = Matrix(arr=[[0]]).transpose()
+inputs3 = Matrix(arr=[[1, 1]]).transpose()
+training3 = Matrix(arr=[[1]]).transpose()
+inputs4 = Matrix(arr=[[0, 0]]).transpose()
+training4 = Matrix(arr=[[0]]).transpose()
 
 brain = Brain(
-    [ff.FeedForward, weights1, bias1, misc.relu, 0],
-    [ff.FeedForward, weights2, bias2, misc.softmax, 0]
+    [ff.FeedForward, weights1, bias1, misc.sigmoid],
 )
-for _ in range(100):
+
+for _ in range(1000):
     brain.train(inputs1, training1, loss_func=misc.crossEntropy)
     brain.train(inputs2, training2, loss_func=misc.crossEntropy)
     brain.train(inputs3, training3, loss_func=misc.crossEntropy)
     brain.train(inputs4, training4, loss_func=misc.crossEntropy)
 
-prediction = brain.predict(inputs3)
-prediction.transpose()
-prediction.print()
+s = subtract(brain.predict(inputs1), training1).returnMatrix()[0][0] + subtract(brain.predict(inputs2), training2).returnMatrix()[0][0] + subtract(brain.predict(inputs3), training3).returnMatrix()[0][0] + subtract(brain.predict(inputs4), training4).returnMatrix()[0][0]
+print(s)

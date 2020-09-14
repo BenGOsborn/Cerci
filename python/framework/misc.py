@@ -36,45 +36,24 @@ def crossEntropy(predicted, actual):
 def backErrors(activation, errors, predicted):
     shape = predicted.size()
 
-    predObj = predicted.clone()
-    errorsObj = errors.clone()
+    pred = predicted.flatten().returnMatrix()[0]
+    errors  = errors.flatten().returnMatrix()[0]
 
-    predObj.flatten()
-    errorsObj.flatten()
-
-    predMat = predObj.returnMatrix()[0]
-    errorsMat = errorsObj.returnMatrix()[0]
-
-    # The loss function does not work here because its to work only for matrices
-    mat_partial = [error*activation(pred, deriv=True) for pred, error in zip(predMat, errorsMat)]
-    newMat = Matrix(arr=mat_partial)
-    newMat.reshape(shape[0], shape[1])
+    mat_partial = [error*activation(pred, deriv=True) for pred, error in zip(pred, errors)]
+    newMat = Matrix(arr=mat_partial).reshape(shape[0], shape[1])
 
     return newMat
 
 def getDifferences(loss, predicted, training):
     shape = training.size()
 
-    predObj = predicted.clone()
-    trainObj = training.clone()
+    pred = predicted.flatten().returnMatrix()[0]
+    train = training.flatten().returnMatrix()[0]
 
-    predObj.flatten()
-    trainObj.flatten()
-
-    predMat = predObj.returnMatrix()[0]
-    trainMat = trainObj.returnMatrix()[0]
-
-    mat_errors = [loss(pred, act) for pred, act in zip(predMat, trainMat)]
-    newMat = Matrix(arr=mat_errors)
-    newMat.reshape(shape[0], shape[1])
+    mat_errors = [loss(pred, act) for pred, act in zip(pred, train)]
+    newMat = Matrix(arr=mat_errors).reshape(shape[0], shape[1])
 
     return newMat
-
-# Dropout
-def dropout(out, dropout_rate):
-    randArr = [False for _ in range(dropout_rate-1)]
-    randArr.append(True)
-    out.applyFunc(lambda x: 0.01 if choice(randArr) else x)
 
 # Optimizers
 def applyMomentum(p_prev, beta1, gradient):
@@ -90,7 +69,11 @@ def applyCorrection(param, beta, iteration):
     return corrected
 
 # If I add other optimizers Im going to have to map the optimizers to have the same imput parameters with 'n=b' notation
-def adam(pPrev, rmsPrev, gradients, beta1, beta2, epsilon, iteration):
+def adam(pPrev, rmsPrev, gradients, iteration):
+    beta1 = 0.9
+    beta2 = 0.999
+    epsilon = 10e-8
+
     gradRaw = gradients.returnMatrix()
     pPrevRaw = pPrev.returnMatrix()
     rmsPrevRaw = rmsPrev.returnMatrix()

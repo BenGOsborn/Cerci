@@ -99,13 +99,11 @@ class Matrix:
             
     def flatten(self):
         new_matrix = []
-        
         for row in self.__matrix:
             for val in row:
                 new_matrix.append(val)
                 
-        self.__matrix = new_matrix
-        self.validMatrix()
+        return Matrix(arr=new_matrix)
 
     def reshape(self, new_rows, new_cols):
         old_size = self.size()
@@ -121,9 +119,8 @@ class Matrix:
                 temp_row.append(val)
             matrix_new.append(temp_row)
 
-        self.__matrix = matrix_new
-        self.validMatrix()
-
+        return Matrix(arr=matrix_new)
+    
     def transpose(self):
         new_matrix = [[0 for _ in range(len(self.__matrix))] for _ in range(len(self.__matrix[0]))]
 
@@ -131,8 +128,7 @@ class Matrix:
             for x in range(len(self.__matrix[0])):
                 new_matrix[x][y] = self.__matrix[y][x]
 
-        self.__matrix = new_matrix
-        self.validMatrix()
+        return Matrix(arr=new_matrix)
 
     def average(self):
         new_matrix = Matrix(arr=self.__matrix)
@@ -162,19 +158,20 @@ class Matrix:
             for x in range(size_cols):
                 pad_init[y+pad_up][x+pad_left] = unpadded_mat[y][x]
 
-        self.__matrix = pad_init
-        self.validMatrix()
+        return Matrix(arr=pad_init)
 
     def applyFunc(self, func):
         size = self.size()
         rows_num = size[0]
         cols_num = size[1]
 
+        mat = self.returnMatrix()
+
         for y in range(rows_num):
             for x in range(cols_num):
-                self.__matrix[y][x] = func(self.__matrix[y][x])
+                mat[y][x] = func(self.__matrix[y][x])
 
-        self.validMatrix()
+        return Matrix(arr=mat)
 
     # Rotates the matrix by pi radians
     def rotate(self):
@@ -185,11 +182,24 @@ class Matrix:
             tempMat[y] = tempMat[y][::-1]
         new_mat = tempMat[::-1]
 
-        self.__matrix = new_mat
-        self.validMatrix()
+        return Matrix(arr=new_mat)
 
     def returnMatrix(self):
         return self.__matrix
 
     def size(self):
         return [len(self.__matrix), len(self.__matrix[0])]
+
+    def cut(self, startRow, endRow, startCol, endCol):
+        retMatrix = self.returnMatrix()
+        dimRows, dimCols = endRow-startRow, endCol-startCol
+
+        tempMatrix = []
+        for row in range(dimRows):
+            tempArr = []
+            for col in range(dimCols):
+                val = retMatrix[startRow+row][startCol+col]
+                tempArr.append(val)
+            tempMatrix.append(tempArr)
+
+        return Matrix(arr=tempMatrix)

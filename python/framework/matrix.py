@@ -1,6 +1,5 @@
-from random import random
-
 # Takes the dot product of two input vectors
+# This probably isnt necessary for the actual functions
 def dot(matrix1, matrix2):
     if ((matrix1.size() != matrix2.size()) or (matrix1.size()[0] != 1)): raise Exception("Dot product failed!")
 
@@ -88,7 +87,7 @@ class Matrix:
             self.__matrix = arr
             self.validMatrix()
         elif (dims != False):
-            self.__matrix = [[init if init != "random" else random() for _ in range(dims[1])] for _ in range(dims[0])] # Rows and columns (Rows is the height, colums is the row length)
+            self.__matrix = [[init() for _ in range(dims[1])] for _ in range(dims[0])] # Rows and columns (Rows is the height, colums is the row length)
             self.validMatrix()
         else:
             raise Exception("Matrix requires parameter 'arr' or 'dims'!")
@@ -187,8 +186,9 @@ class Matrix:
     def returnMatrix(self):
         return self.__matrix
 
+    # This will need refactoring
     def size(self):
-        return [len(self.__matrix), len(self.__matrix[0])]
+        return len(self.__matrix), len(self.__matrix[0])
 
     def cut(self, startRow, endRow, startCol, endCol):
         retMatrix = self.returnMatrix()

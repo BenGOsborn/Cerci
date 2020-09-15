@@ -16,3 +16,5 @@
 * Add weight initializing functions using the proper weight generation techniques
 * Make some of the class functions return a value and not just update the original value, possibly make them into their own subfunctions outside of the class
 * Cleanup the files and optimize the matrix operations and misc functions
+* Cleanup the 'shape' feature wherever it is called as it can now be accessed with th
+* Remove unused functions from the misc library

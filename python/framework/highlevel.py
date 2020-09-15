@@ -35,8 +35,10 @@ class Brain:
             returnArray.append(layer.returnNetwork())
         return returnArray
 
-weights1 = Matrix(dims=[1, 2], init="random")
-bias1 = Matrix(dims=[1, 1], init="random")
+
+
+weights1 = Matrix(dims=[1, 2], init=lambda: 0.5)
+bias1 = Matrix(dims=[1, 1], init=lambda: 0.5)
 
 inputs1 = Matrix(arr=[[1, 0]]).transpose()
 training1 = Matrix(arr=[[0]]).transpose()

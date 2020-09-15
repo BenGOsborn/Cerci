@@ -8,11 +8,19 @@ class FullyConnected:
         self.bias = bias_set
         self.activation_func = activation_func
 
-        self.pWeight = matrix.Matrix(dims=weight_set.size(), init=0)
-        self.pBias = matrix.Matrix(dims=bias_set.size(), init=0)
-        self.rmsWeight = matrix.Matrix(dims=weight_set.size(), init=0)
-        self.rmsBias = matrix.Matrix(dims=bias_set.size(), init=0)
+        self.pWeight = matrix.Matrix(dims=weight_set.size(), init=lambda: 0)
+        self.pBias = matrix.Matrix(dims=bias_set.size(), init=lambda: 0)
+        self.rmsWeight = matrix.Matrix(dims=weight_set.size(), init=lambda: 0)
+        self.rmsBias = matrix.Matrix(dims=bias_set.size(), init=lambda: 0)
         self.iteration = 0 # This has to be reinited at the start of every training session
+
+    # This clears the momentum buffer when new sets need to be trained on the model
+    def reinit(self):
+        self.pWeight = matrix.Matrix(dims=self.pWeight.size(), init=lambda: 0)
+        self.pBias = matrix.Matrix(dims=self.pBias.size(), init=lambda: 0)
+        self.rmsWeight = matrix.Matrix(dims=self.rmsWeight.size(), init=lambda: 0)
+        self.rmsBias = matrix.Matrix(dims=self.rmsBias.size(), init=lambda: 0)
+        self.iteration = 0
 
     def feedForward(self, inputs, training=False):
         multiplied = matrix.multiplyMatrices(self.weights, inputs)
@@ -22,14 +30,6 @@ class FullyConnected:
         out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy)) 
 
         return out
-
-    # This clears the momentum buffer when new sets need to be trained on the model
-    def reinit(self):
-        self.pWeight = matrix.Matrix(dims=self.weights.size(), init=0)
-        self.pBias = matrix.Matrix(dims=self.bias.size(), init=0)
-        self.rmsWeight = matrix.Matrix(dims=self.weights.size(), init=0)
-        self.rmsBias = matrix.Matrix(dims=self.bias.size(), init=0)
-        self.iteration = 0
 
     def train(self, input_set, predicted, errors, optimizer, learn_rate=0.5):
         self.iteration += 1

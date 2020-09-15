@@ -22,7 +22,7 @@ class FullyConnected:
         self.rmsBias = matrix.Matrix(dims=self.rmsBias.size(), init=lambda: 0)
         self.iteration = 0
 
-    def feedForward(self, inputs, training=False):
+    def feedForward(self, inputs):
         multiplied = matrix.multiplyMatrices(self.weights, inputs)
         out = matrix.add(multiplied, self.bias)
 

@@ -2,11 +2,28 @@ import matrix
 from misc import backErrors
 from math import ceil
 
+def kernel(inMatrix, kernel_size_rows, kernel_size_cols, step_size_rows, step_size_cols):
+    # Do I need to have seperate kernelling size for when we kernel things that are not the weights such as the errors
+
+    # The kernel size is actually gonna be the size of the weights
+    size = inMatrix.size()
+
+    retMatrix = []
+    for rowNum in range(size[0]-kernel_size_rows+1):
+        for colNum in range(size[1]-kernel_size_cols+1):
+            if ((rowNum % step_size_rows == 0) and (colNum % step_size_cols == 0)):
+                tempTrix = inMatrix.cut(rowNum, rowNum+kernel_size_rows, colNum, colNum+kernel_size_cols).flatten().returnMatrix()[0]
+                retMatrix.append(tempTrix)
+
+    return matrix.Matrix(arr=retMatrix)
+
 class Convolutional:
     def __init__(self, weight_set, step_size_rows, step_size_cols, activation_func):
         self.weights = weight_set
         self.activation_func = activation_func
 
+        self.kernel_size_rows = weight_set.size()[0]
+        self.kernel_size_cols = weight_set.size()[1]
         self.step_size_rows = step_size_rows
         self.step_size_cols = step_size_cols
 
@@ -19,37 +36,22 @@ class Convolutional:
         self.rmsWeight = matrix.Matrix(dims=self.rmsWeight.size(), init=lambda: 0)
         self.iteration = 0
 
-    def kernel(self, inMatrix):
+    def predict(self, inputs, custom_filter=False):
+        slider = custom_filter
 
-        # Do I need to have seperate kernelling size for when we kernel things that are not the weights such as the errors
+        # Might need to add custom step size and row size for this or maybe not
+        if not custom_filter:
+            slider = self.weights
 
-        # The kernel size is actually gonna be the size of the weights
-        size = inMatrix.size()
-        kernelSize = self.weights.size()
+        kernels = kernel(inputs, self.kernel_size_rows, self.kernel_size_cols, self.step_size_rows, self.step_size_cols) 
 
-        retMatrix = []
-        for rowNum in range(size[0]-kernelSize[0]+1):
-            for colNum in range(size[1]-kernelSize[1]+1):
-                if ((rowNum % self.step_size_rows == 0) and (colNum % self.step_size_cols == 0)):
-                    tempTrix = inMatrix.cut(rowNum, rowNum+kernelSize[0], colNum, colNum+kernelSize[1]).flatten().returnMatrix()[0]
-                    retMatrix.append(tempTrix)
+        out = matrix.multiplyMatrices(kernels, slider.flatten().transpose())
 
-        return matrix.Matrix(arr=retMatrix)
-
-    def predict(self, inputs):
-        # High level layer needs rewrite
-
-        # Consider calling this function seperately for ease of use
-        # Could also consider putting the step_size in the init part
-        kernels = self.kernel(inputs) 
-
-        out = matrix.multiplyMatrices(kernels, self.weights.flatten().transpose())
-
-        outCpy = out.clone()
+        outCpy = out.clone() # This is required for the softmax function
         out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy))
 
-        new_sizeRows = ceil((inputs.size()[0] - self.weights.size()[0] + 1) / self.step_size_rows)
-        new_sizeCols = ceil((inputs.size()[1] - self.weights.size()[1] + 1) / self.step_size_cols)
+        new_sizeRows = ceil((inputs.size()[0] - slider.size()[0] + 1) / self.step_size_rows)
+        new_sizeCols = ceil((inputs.size()[1] - slider.size()[1] + 1) / self.step_size_cols)
 
         out = out.flatten().reshape(new_sizeRows, new_sizeCols)
 
@@ -63,18 +65,30 @@ class Convolutional:
         errors = backErrors(self.activation_func, errors, predicted)
 
         # The input layer will just be the same kernelled values from the other layer
-        kernel = self.kernel(input_set_raw)
+        kernelTranspose = kernel(input_set_raw, self.kernel_size_rows, self.kernel_size_cols, self.step_size_rows, self.step_size_cols).transpose()
 
         # Now here we do the error creation for the actual errors
         # Note that the errors parsed in should be a flattened layer
-        kernelTranspose = kernel.transpose()
         w_AdjustmentsRaw = matrix.multiplyMatrices(kernelTranspose, errors)
 
         self.pWeight, self.rmsWeight, w_Adjustments = optimizer(self.pWeight, self.rmsWeight, w_AdjustmentsRaw, self.iteration)
         w_Adjustments = matrix.multiplyScalar(w_Adjustments, learn_rate)
         self.weights = matrix.subtract(self.weights, w_Adjustments)
 
+        # Now for calculating the hidden errors
+        # I need to pad that layer and then return a rotated kernel matrix
+        # How does this kernelling for the hidden errors and the errors take affect when the step size is increased
+        filterFlipped = self.weights.rotate()
+
+        errorShape = predicted.size()
+        filterShape = filterFlipped.shape()
+
+        errorsShaped = errors.reshape(errorShape[0], errorShape[1])
+        errorsPadded = errorsShaped.pad(pad_up=filterShape[1]-1, pad_down=filterShape[1]-1, pad_left=filterShape[0]-1, pad_right=filterShape[0]-1)
+
         # Now to get the errors for the previous layer I need to pad the error layer reshaped and then the 
+        h_Error = self.predict(errorsPadded, filterFlipped)
+        return h_Error
 
     def returnNetwork(self):
         pass

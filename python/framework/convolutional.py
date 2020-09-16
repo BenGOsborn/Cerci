@@ -36,7 +36,7 @@ class Convolutional:
 
         return matrix.Matrix(arr=retMatrix)
 
-    def feedForward(self, inputs):
+    def predict(self, inputs):
         # High level layer needs rewrite
 
         # Consider calling this function seperately for ease of use
@@ -83,4 +83,4 @@ from misc import relu
 weights = matrix.Matrix(dims=[2, 2], init=lambda: 4)
 inputs = matrix.Matrix(dims=[10, 10], init=lambda: 2)
 x = Convolutional(weights, 1, 1, relu)
-x.feedForward(inputs).print()
+x.predict(inputs).print()

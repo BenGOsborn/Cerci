@@ -16,8 +16,7 @@ def relu(x, vals=None, deriv=False):
 def softmax(val, vals=None, deriv=False):
     if deriv:
         return val*(1-val)
-    vals.flatten()
-    vals = vals.returnMatrix()[0]
+    vals = vals.flatten().returnMatrix()[0]
     return exp(val)/sum([exp(x) for x in vals])
     
 # Loss functions
@@ -27,9 +26,9 @@ def meanSquared(predicted, actual):
 def crossEntropy(predicted, actual):
     # This should not need to be corrected really
     if (predicted == 1): # Fixes python auto rounding to 1
-        predicted = 0.99999
+        predicted = 1-10e-8
     elif (predicted == 0): # Fixes python auto rounding to 0
-        predicted = 0.00001
+        predicted = 10e-8
     return -1*(actual/predicted) + (1-actual)/(1-predicted)
 
 # Returns the back errors
@@ -51,7 +50,7 @@ def getDifferences(loss, predicted, training):
     train = training.flatten().returnMatrix()[0]
 
     mat_errors = [loss(pred, act) for pred, act in zip(pred, train)]
-    newMat = Matrix(arr=mat_errors).reshape(shape[0], shape[1])
+    newMat = mat_errors.reshape(shape[0], shape[1])
 
     return newMat
 

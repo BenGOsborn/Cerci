@@ -1,7 +1,3 @@
-import fullyconnected as fc
-import misc
-from matrix import Matrix, subtract
-
 class Brain:
     def __init__(self, *layers):
         self.__layers = []
@@ -34,8 +30,6 @@ class Brain:
         for layer in self.__layers:
             returnArray.append(layer.returnNetwork())
         return returnArray
-
-
 
 weights1 = Matrix(dims=[1, 2], init=lambda: 0.5)
 bias1 = Matrix(dims=[1, 1], init=lambda: 0.5)

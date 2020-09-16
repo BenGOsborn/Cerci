@@ -1,14 +1,7 @@
 # Takes the dot product of two input vectors
 # This probably isnt necessary for the actual functions
-def dot(matrix1, matrix2):
-    if ((matrix1.size() != matrix2.size()) or (matrix1.size()[0] != 1)): raise Exception("Dot product failed!")
-
-    mat1 = matrix1.returnMatrix()[0]
-    mat2 = matrix2.returnMatrix()[0]
-
-    return sum([val1*val2 for val1, val2 in zip(mat1, mat2)])
-
 # Add 1 to 2
+
 def add(matrix1, matrix2):
     if (matrix1.size() != matrix2.size()): raise Exception(f"Matrices must be same size! Matrix size 1: {matrix1.size()} | Matrix size 2: {matrix2.size()}")
 

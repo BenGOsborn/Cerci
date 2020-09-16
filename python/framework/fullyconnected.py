@@ -36,21 +36,19 @@ class FullyConnected:
 
         errors = backErrors(self.activation_func, errors, predicted)
 
-        inputTransposed = matrix.Matrix(arr=input_set.returnMatrix()).transpose()
+        inputTransposed = input_set.transpose()
 
         w_AdjustmentsRaw = matrix.multiplyMatrices(errors, inputTransposed)
 
         self.pWeight, self.rmsWeight, w_Adjustments = optimizer(self.pWeight, self.rmsWeight, w_AdjustmentsRaw, self.iteration)
         w_Adjustments = matrix.multiplyScalar(w_Adjustments, learn_rate)
-        w_New = matrix.subtract(self.weights, w_Adjustments)
-        self.weights = w_New
+        self.weights = matrix.subtract(self.weights, w_Adjustments)
 
         self.pBias, self.rmsBias, b_Adjustments = optimizer(self.pBias, self.rmsBias, errors, self.iteration)
         b_Adjustments = matrix.multiplyScalar(errors, learn_rate)
-        b_New = matrix.subtract(self.bias, b_Adjustments)
-        self.bias = b_New
+        self.bias = matrix.subtract(self.bias, b_Adjustments)
 
-        transposeWeights = matrix.Matrix(arr=self.weights.returnMatrix()).transpose()
+        transposeWeights = self.weights.transpose()
 
         h_Error = matrix.multiplyMatrices(transposeWeights, errors)
         return h_Error

@@ -87,6 +87,7 @@ class Convolutional:
         errorsPadded = errorsShaped.pad(pad_up=filterShape[1]-1, pad_down=filterShape[1]-1, pad_left=filterShape[0]-1, pad_right=filterShape[0]-1)
 
         # Now to get the errors for the previous layer I need to pad the error layer reshaped and then the 
+        # Ill have to add somw sort of custom filter here
         h_Error = self.predict(errorsPadded, filterFlipped)
         return h_Error
 

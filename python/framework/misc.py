@@ -50,7 +50,7 @@ def getDifferences(loss, predicted, training):
     train = training.flatten().returnMatrix()[0]
 
     mat_errors = [loss(pred, act) for pred, act in zip(pred, train)]
-    newMat = mat_errors.reshape(shape[0], shape[1])
+    newMat = Matrix(arr=mat_errors).reshape(shape[0], shape[1])
 
     return newMat
 

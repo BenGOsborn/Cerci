@@ -8,17 +8,17 @@ class FullyConnected:
         self.bias = bias_set
         self.activation_func = activation_func
 
-        self.pWeight = matrix.Matrix(dims=weight_set.size(), init=lambda: 0)
+        self.pWeights = matrix.Matrix(dims=weight_set.size(), init=lambda: 0)
         self.pBias = matrix.Matrix(dims=bias_set.size(), init=lambda: 0)
-        self.rmsWeight = matrix.Matrix(dims=weight_set.size(), init=lambda: 0)
+        self.rmsWeights = matrix.Matrix(dims=weight_set.size(), init=lambda: 0)
         self.rmsBias = matrix.Matrix(dims=bias_set.size(), init=lambda: 0)
         self.iteration = 0 # This has to be reinited at the start of every training session
 
     # This clears the momentum buffer when new sets need to be trained on the model
     def reinit(self):
-        self.pWeight = matrix.Matrix(dims=self.pWeight.size(), init=lambda: 0)
+        self.pWeights = matrix.Matrix(dims=self.pWeights.size(), init=lambda: 0)
         self.pBias = matrix.Matrix(dims=self.pBias.size(), init=lambda: 0)
-        self.rmsWeight = matrix.Matrix(dims=self.rmsWeight.size(), init=lambda: 0)
+        self.rmsWeights = matrix.Matrix(dims=self.rmsWeights.size(), init=lambda: 0)
         self.rmsBias = matrix.Matrix(dims=self.rmsBias.size(), init=lambda: 0)
         self.iteration = 0
 
@@ -40,7 +40,7 @@ class FullyConnected:
 
         w_AdjustmentsRaw = matrix.multiplyMatrices(errors, inputTransposed)
 
-        self.pWeight, self.rmsWeight, w_Adjustments = optimizer(self.pWeight, self.rmsWeight, w_AdjustmentsRaw, self.iteration)
+        self.pWeights, self.rmsWeights, w_Adjustments = optimizer(self.pWeights, self.rmsWeights, w_AdjustmentsRaw, self.iteration)
         w_Adjustments = matrix.multiplyScalar(w_Adjustments, learn_rate)
         self.weights = matrix.subtract(self.weights, w_Adjustments)
 
@@ -54,4 +54,5 @@ class FullyConnected:
         return h_Error
 
     def returnNetwork(self):
-        return self.weights, self.bias
+        return self.weights, self.pWeights, self.rmsWeights, self.bias, self.pBias, self.rmsBias
+        # Add a way to custom load the training values into the array given this set with a seperate constructor

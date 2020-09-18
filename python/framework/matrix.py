@@ -75,6 +75,10 @@ def matrixAverage(matrix):
 
     return avg
 
+def matrixSum(matrix):
+    flat = matrix.flatten()[0]
+    return sum(flat)
+
 # For optimization preallocate the length of the matrices and then add in the values by index
 class Matrix:
     def validMatrix(self):

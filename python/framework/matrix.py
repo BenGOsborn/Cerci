@@ -67,6 +67,14 @@ def multiplyMatrices(matrix1, matrix2):
 
     return Matrix(arr=matrixNew)
 
+def matrixAverage(matrix):
+    new_matrix = matrix.flatten()
+    ln = new_matrix.size()[1]
+    sm = sum(new_matrix.returnMatrix()[0])
+    avg = sm/ln
+
+    return avg
+
 # For optimization preallocate the length of the matrices and then add in the values by index
 class Matrix:
     def validMatrix(self):
@@ -98,10 +106,10 @@ class Matrix:
         return Matrix(arr=new_matrix)
 
     def reshape(self, new_rows, new_cols):
-        old_size = self.size()
-        if (new_rows*new_cols != old_size[0]*old_size[1]): raise Exception(f"Matrix must have same size! Old rows: {old_size[0]} Old cols: {old_size[1]} | New rows: {new_rows} New cols: {new_cols}")
-        self.flatten()
-        mat_temp_reversed = self.returnMatrix()[0][::-1]
+        size = self.size()
+        if (new_rows*new_cols != size[0]*size[1]): raise Exception(f"Matrix must have same size! Old rows: {size[0]} Old cols: {size[1]} | New rows: {new_rows} New cols: {new_cols}")
+        flatTrix = self.flatten()
+        mat_temp_reversed = flatTrix.returnMatrix()[0][::-1]
 
         matrix_new = []
         for _ in range(new_rows):
@@ -121,15 +129,6 @@ class Matrix:
                 new_matrix[x][y] = self.__matrix[y][x]
 
         return Matrix(arr=new_matrix)
-
-    def average(self):
-        new_matrix = Matrix(arr=self.__matrix)
-        new_matrix.flatten()
-        ln = new_matrix.size()[1]
-        sm = sum(new_matrix.returnMatrix()[0])
-        avg = sm/ln
-
-        return avg
 
     def clone(self):
         return Matrix(arr=self.__matrix)

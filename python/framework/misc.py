@@ -32,7 +32,7 @@ def crossEntropy(predicted, actual):
     return -1*(actual/predicted) + (1-actual)/(1-predicted)
 
 # Returns the back errors
-def backErrors(activation, errors, predicted):
+def applyActivationGradient(activation, errors, predicted):
     shape = predicted.size()
 
     pred = predicted.flatten().returnMatrix()[0]

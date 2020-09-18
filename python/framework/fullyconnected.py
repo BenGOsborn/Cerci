@@ -1,5 +1,5 @@
 import matrix
-from misc import backErrors
+from misc import applyActivationGradient
 
 class FullyConnected:
 
@@ -31,10 +31,10 @@ class FullyConnected:
 
         return out
 
-    def train(self, input_set, predicted, errors, optimizer, learn_rate=0.5):
+    def train(self, input_set, predicted, errors_raw, optimizer, learn_rate=0.5):
         self.iteration += 1
 
-        errors = backErrors(self.activation_func, errors, predicted)
+        errors = applyActivationGradient(self.activation_func, errors_raw, predicted)
 
         inputTransposed = input_set.transpose()
 

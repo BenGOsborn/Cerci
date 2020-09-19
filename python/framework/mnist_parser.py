@@ -14,7 +14,7 @@ def genData(raw_data_file_path, data_size):
     
     data_set = []
     for i in range(data_size):
-        data = matrix.Matrix(arr=list(data_raw[i][1:].reshape(28, 28)))
+        data = matrix.Matrix(arr=list(data_raw[i][1:].reshape(28, 28)/255))
         label = matrix.Matrix(arr=parser(data_raw[i][0]))
 
         data_set.append((data, label))

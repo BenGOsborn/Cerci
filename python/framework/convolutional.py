@@ -91,7 +91,7 @@ class Convolutional:
 
         return out
 
-    def train(self, input_set, predicted, errors_raw, optimizer, learn_rate=0.5):
+    def train(self, input_set, predicted, errors_raw, optimizer, learn_rate=0.1):
         self.iteration += 1
 
         errors = applyActivationGradient(self.activation_func, errors_raw, predicted).flatten().transpose()
@@ -99,7 +99,6 @@ class Convolutional:
         kerneledTransposed = kernel(input_set, self.kernel_size_rows, self.kernel_size_cols, self.step_size_rows, self.step_size_rows).transpose()
 
         w_AdjustmentsRaw = matrix.multiplyMatrices(kerneledTransposed, errors).reshape(self.kernel_size_rows, self.kernel_size_cols)
-
         self.pWeights, self.rmsWeights, w_Adjustments = optimizer(self.pWeights, self.rmsWeights, w_AdjustmentsRaw, self.iteration)
         w_Adjustments = matrix.multiplyScalar(w_Adjustments, learn_rate).reshape(self.kernel_size_rows, self.kernel_size_cols)
         self.weights = matrix.subtract(self.weights, w_Adjustments)

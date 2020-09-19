@@ -117,16 +117,3 @@ class Convolutional:
     def returnNetwork(self):
         return self.weights, self.pWeights, self.rmsWeights, self.bias, self.pBias, self.rmsBias
         # Add a seperate constructor to custom load in these values
-
-from misc import relu, getDifferences, crossEntropy, adam
-weights = matrix.Matrix(dims=[2, 2], init=lambda: 1)
-bias = 1
-
-inputs = matrix.Matrix(dims=[3, 4], init=lambda: 0.5)
-training = matrix.Matrix(dims=[2, 3], init=lambda: 1)
-
-x = Convolutional(weights, bias, 1, 1, relu)
-
-prediction = x.predict(inputs)
-difference = getDifferences(crossEntropy, prediction, training)
-hidden = x.train(inputs, prediction, difference, adam)

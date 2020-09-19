@@ -32,6 +32,8 @@ def crossEntropy(predicted, actual):
     return -1*(actual/predicted) + (1-actual)/(1-predicted)
 
 # Returns the back errors
+
+# I changed this for the convolutional layer it could break it for the other layers
 def applyActivationGradient(activation, errors, predicted):
     shape = predicted.size()
 
@@ -69,36 +71,51 @@ def applyCorrection(param, beta, iteration):
 
 # If I add other optimizers Im going to have to map the optimizers to have the same imput parameters with 'n=b' notation
 def adam(pPrev, rmsPrev, gradients, iteration, beta1=0.9, beta2=0.999, epsilon=10e-8):
-    gradRaw = gradients.returnMatrix()
-    pPrevRaw = pPrev.returnMatrix()
-    rmsPrevRaw = rmsPrev.returnMatrix()
-    gradSize = gradients.size()
 
-    pRaw = [] 
-    rmsRaw = [] 
-    adamRaw = []
-    for y in range(gradSize[0]):
-        tempArrP = []
-        tempArrRMS = []
-        tempArrAdam = []
-        for x in range(gradSize[1]):
-            momentum = applyMomentum(pPrevRaw[y][x], beta1, gradRaw[y][x])
-            tempArrP.append(momentum)
-            momentumCorrected = applyCorrection(momentum, beta1, iteration)
+    # This also has to be done for all of the gradients too...
+    # So this means that it will be a sibngle instance of the value to iterate through
+    if not isinstance(gradients, Matrix):
+        momentum = applyMomentum(pPrev, rmsPrev, gradients)
+        momentumCorrected = applyCorrection(momentum, beta1, iteration)
+        rms = applyRMS(rmsPrev, beta2, gradients)
+        rmsCorrected = applyCorrection(rms, beta2, iteration)
 
-            rms = applyRMS(rmsPrevRaw[y][x], beta2, gradRaw[y][x]) 
-            tempArrRMS.append(rms)
-            rmsCorrected = applyCorrection(rms, beta2, iteration)
+        adam = momentumCorrected / (rmsCorrected**(0.5) + epsilon)
 
-            adam = momentumCorrected / (rmsCorrected**(0.5) + epsilon) # This must have generated a complex number, why?
-            tempArrAdam.append(adam)
+        return momentum, rms, adam
 
-        pRaw.append(tempArrP)
-        rmsRaw.append(tempArrRMS)
-        adamRaw.append(tempArrAdam)
+    else:
+        gradRaw = gradients.returnMatrix()
+        pPrevRaw = pPrev.returnMatrix()
+        rmsPrevRaw = rmsPrev.returnMatrix()
 
-    p = Matrix(arr=pRaw)
-    rms = Matrix(arr=rmsRaw)
-    adam = Matrix(arr=adamRaw)
+        gradSize = gradients.size()
 
-    return p, rms, adam
+        pRaw = [] 
+        rmsRaw = [] 
+        adamRaw = []
+        for y in range(gradSize[0]):
+            tempArrP = []
+            tempArrRMS = []
+            tempArrAdam = []
+            for x in range(gradSize[1]):
+                momentum = applyMomentum(pPrevRaw[y][x], beta1, gradRaw[y][x])
+                tempArrP.append(momentum)
+                momentumCorrected = applyCorrection(momentum, beta1, iteration)
+
+                rms = applyRMS(rmsPrevRaw[y][x], beta2, gradRaw[y][x]) 
+                tempArrRMS.append(rms)
+                rmsCorrected = applyCorrection(rms, beta2, iteration)
+
+                adam = momentumCorrected / (rmsCorrected**(0.5) + epsilon) # This must have generated a complex number, why?
+                tempArrAdam.append(adam)
+
+            pRaw.append(tempArrP)
+            rmsRaw.append(tempArrRMS)
+            adamRaw.append(tempArrAdam)
+
+        p = Matrix(arr=pRaw)
+        rms = Matrix(arr=rmsRaw)
+        adam = Matrix(arr=adamRaw)
+
+        return p, rms, adam

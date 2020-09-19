@@ -76,7 +76,7 @@ def matrixAverage(matrix):
     return avg
 
 def matrixSum(matrix):
-    flat = matrix.flatten()[0]
+    flat = matrix.flatten().returnMatrix()[0]
     return sum(flat)
 
 # For optimization preallocate the length of the matrices and then add in the values by index
@@ -87,7 +87,7 @@ class Matrix:
         except:
             self.__matrix = [self.__matrix]
 
-    def __init__(self, arr=False, dims=False, init=0):
+    def __init__(self, arr=False, dims=False, init=lambda: 0):
         if (arr != False):
             self.__matrix = arr
             self.validMatrix()
@@ -137,7 +137,7 @@ class Matrix:
     def clone(self):
         return Matrix(arr=self.__matrix)
 
-    def pad(self, pad_up=0, pad_down=0, pad_left=0, pad_right=0, pad_val=0):
+    def pad(self, pad_up=0, pad_down=0, pad_left=0, pad_right=0, pad_val=lambda: 0):
         # I want to create a newly sized array and then for all the indexes in the range I want to shift them over by the horizontal and the vertical
         size = self.size()
         size_rows = size[0]
@@ -146,7 +146,7 @@ class Matrix:
         padded_size_rows = size_rows + pad_down + pad_up
         padded_size_cols = size_cols + pad_left + pad_right
 
-        pad_init = [[pad_val for _ in range(padded_size_cols)] for _ in range(padded_size_rows)]
+        pad_init = [[pad_val() for _ in range(padded_size_cols)] for _ in range(padded_size_rows)]
 
         unpadded_mat = self.returnMatrix()
         for y in range(size_rows):

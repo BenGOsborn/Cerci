@@ -69,18 +69,22 @@ class Convolutional:
 
         self.pWeights = matrix.Matrix(dims=weight_set.size(), init=lambda: 0)
         self.rmsWeights = matrix.Matrix(dims=weight_set.size(), init=lambda: 0)
+        self.pBias = 0
+        self.rmsBias = 0
         self.iteration = 0
 
     def reinit(self):
-        self.pWeights = matrix.Matrix(dims=self.pWeights.size(), init=lambda: 0)
-        self.rmsWeights = matrix.Matrix(dims=self.rmsWeights.size(), init=lambda: 0)
+        self.pWeights = matrix.Matrix(dims=self.weights.size(), init=lambda: 0)
+        self.rmsWeights = matrix.Matrix(dims=self.weights.size(), init=lambda: 0)
+        self.pBias = 0
+        self.rmsBias = 0
         self.iteration = 0
 
     def predict(self, inputs):
         wKernal = weightedKernel(inputs, self.weights, self.step_size_rows, self.step_size_cols)
-        biasArray = matrix.Matrix(dims=[wKernal.size()[0], wKernal.size()[1]], init=lambda: self.bias)
+        biasSet = matrix.Matrix(dims=wKernal.size(), init=lambda: self.bias)
 
-        out = matrix.add(wKernal, biasArray)
+        out = matrix.add(wKernal, biasSet)
 
         outCpy = out.clone()
         out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy))
@@ -90,18 +94,19 @@ class Convolutional:
     def train(self, input_set, predicted, errors_raw, optimizer, learn_rate=0.5):
         self.iteration += 1
 
-        errors = applyActivationGradient(self.activation_func, errors_raw, predicted)
+        errors = applyActivationGradient(self.activation_func, errors_raw, predicted).flatten().transpose()
 
         kerneledTransposed = kernel(input_set, self.kernel_size_rows, self.kernel_size_cols, self.step_size_rows, self.step_size_rows).transpose()
 
-        w_AdjustmentsRaw = matrix.multiplyMatrices(kerneledTransposed, errors)
+        w_AdjustmentsRaw = matrix.multiplyMatrices(kerneledTransposed, errors).reshape(self.kernel_size_rows, self.kernel_size_cols)
 
         self.pWeights, self.rmsWeights, w_Adjustments = optimizer(self.pWeights, self.rmsWeights, w_AdjustmentsRaw, self.iteration)
-        w_Adjustments = matrix.multiplyScalar(w_Adjustments, learn_rate)
+        w_Adjustments = matrix.multiplyScalar(w_Adjustments, learn_rate).reshape(self.kernel_size_rows, self.kernel_size_cols)
         self.weights = matrix.subtract(self.weights, w_Adjustments)
-
-        self.pBias, self.rmsBias, b_Adjustments = optimizer(self.pBias, self.rmsBias, errors, self.iteration)
-        self.bias = self.bias - learn_rate*matrix.matrixSum(b_Adjustments)
+        
+        errGradients = matrix.matrixSum(errors)
+        self.pBias, self.rmsBias, b_Adjustments = optimizer(self.pBias, self.rmsBias, errGradients, self.iteration)
+        self.bias = self.bias - learn_rate*b_Adjustments
 
         weightsFlipped = self.weights.rotate()
         errorsDilated = dilate(errors, self.kernel_size_rows, self.kernel_size_cols, self.step_size_rows, self.step_size_cols)
@@ -114,12 +119,13 @@ class Convolutional:
         # Add a seperate constructor to custom load in these values
 
 from misc import relu, getDifferences, crossEntropy, adam
-weights = matrix.Matrix(dims=[3, 3], init=lambda: 0.5)
-inputs = matrix.Matrix(dims=[5, 5], init=lambda: 2)
+weights = matrix.Matrix(dims=[2, 2], init=lambda: 1)
+bias = 1
 
-training = matrix.Matrix(dims=[2, 2], init=lambda: 1)
+inputs = matrix.Matrix(dims=[3, 4], init=lambda: 0.5)
+training = matrix.Matrix(dims=[2, 3], init=lambda: 1)
 
-x = Convolutional(weights, 1, 2, 2, relu)
+x = Convolutional(weights, bias, 1, 1, relu)
 
 prediction = x.predict(inputs)
 difference = getDifferences(crossEntropy, prediction, training)

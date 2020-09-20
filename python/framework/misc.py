@@ -1,6 +1,10 @@
-from math import exp, tanh, log
+from math import exp, log
 from matrix import Matrix
 from random import choice
+
+def weightRandom():
+    ls = [-1, -0.5, 0, 0.5, 1]
+    return choice(ls)
 
 # Activation functions
 def sigmoid(x, vals=None, deriv=False):
@@ -31,17 +35,13 @@ def crossEntropy(predicted, actual):
         predicted = 10e-8
     return -1*(actual/predicted) + (1-actual)/(1-predicted)
 
-# Returns the back errors
-
-# I changed this for the convolutional layer it could break it for the other layers
+# Applies the activation gradient to the errors for backporop
 def applyActivationGradient(activation, errors, predicted):
-    shape = predicted.size()
-
     pred = predicted.flatten().returnMatrix()[0]
     errors  = errors.flatten().returnMatrix()[0]
 
     mat_partial = [error*activation(pred, deriv=True) for pred, error in zip(pred, errors)]
-    newMat = Matrix(arr=mat_partial).reshape(shape[0], shape[1])
+    newMat = Matrix(arr=mat_partial)
 
     return newMat
 

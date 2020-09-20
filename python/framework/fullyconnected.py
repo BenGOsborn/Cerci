@@ -2,7 +2,6 @@ import matrix
 from misc import applyActivationGradient
 
 class FullyConnected:
-
     def __init__(self, weight_set, bias_set, activation_func):
         self.weights = weight_set
         self.bias = bias_set
@@ -12,14 +11,6 @@ class FullyConnected:
         self.pBias = matrix.Matrix(dims=bias_set.size(), init=lambda: 0)
         self.rmsWeights = matrix.Matrix(dims=weight_set.size(), init=lambda: 0)
         self.rmsBias = matrix.Matrix(dims=bias_set.size(), init=lambda: 0)
-        self.iteration = 0 # This has to be reinited at the start of every training session
-
-    # This clears the momentum buffer when new sets need to be trained on the model
-    def reinit(self):
-        self.pWeights = matrix.Matrix(dims=self.pWeights.size(), init=lambda: 0)
-        self.pBias = matrix.Matrix(dims=self.pBias.size(), init=lambda: 0)
-        self.rmsWeights = matrix.Matrix(dims=self.rmsWeights.size(), init=lambda: 0)
-        self.rmsBias = matrix.Matrix(dims=self.rmsBias.size(), init=lambda: 0)
         self.iteration = 0
 
     def predict(self, inputs):
@@ -49,10 +40,9 @@ class FullyConnected:
         self.bias = matrix.subtract(self.bias, b_Adjustments)
 
         transposeWeights = self.weights.transpose()
-
         h_Error = matrix.multiplyMatrices(transposeWeights, errors)
+
         return h_Error
 
     def returnNetwork(self):
         return self.weights, self.pWeights, self.rmsWeights, self.bias, self.pBias, self.rmsBias
-        # Add a way to custom load the training values into the array given this set with a seperate constructor

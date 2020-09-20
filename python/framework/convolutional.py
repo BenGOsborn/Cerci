@@ -25,7 +25,6 @@ def weightedKernel(inMatrix, kernelMatrix, step_size_rows, step_size_cols):
     new_sizeCols = ceil((inMatrix.size()[1] - kernel_size_cols + 1) / step_size_cols)
 
     return weightedKernel.reshape(new_sizeRows, new_sizeCols)
-    # Where else has there been this problem with the reshape where it was flattening the object?
 
 def dilate(toDilate, kernel_size_rows, kernel_size_cols, step_size_rows, step_size_cols):
     valArray = toDilate.returnMatrix()
@@ -33,7 +32,6 @@ def dilate(toDilate, kernel_size_rows, kernel_size_cols, step_size_rows, step_si
     midGridSizeColLen = (len(valArray[0])-1)*(step_size_cols-1)+len(valArray[0])
     zeroArray = [0 for _ in range(midGridSizeColLen)]
 
-    # We're gonna do it for the verticals and then for the horizontals
     scaledHorizontal = []
     for y in range(len(valArray)):
         tempArr = []
@@ -73,18 +71,11 @@ class Convolutional:
         self.rmsBias = 0
         self.iteration = 0
 
-    def reinit(self):
-        self.pWeights = matrix.Matrix(dims=self.weights.size(), init=lambda: 0)
-        self.rmsWeights = matrix.Matrix(dims=self.weights.size(), init=lambda: 0)
-        self.pBias = 0
-        self.rmsBias = 0
-        self.iteration = 0
-
     def predict(self, inputs):
-        wKernal = weightedKernel(inputs, self.weights, self.step_size_rows, self.step_size_cols)
-        biasSet = matrix.Matrix(dims=wKernal.size(), init=lambda: self.bias)
+        wKernel = weightedKernel(inputs, self.weights, self.step_size_rows, self.step_size_cols)
+        biasSet = matrix.Matrix(dims=wKernel.size(), init=lambda: self.bias)
 
-        out = matrix.add(wKernal, biasSet)
+        out = matrix.add(wKernel, biasSet)
 
         outCpy = out.clone()
         out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy))
@@ -94,7 +85,7 @@ class Convolutional:
     def train(self, input_set, predicted, errors_raw, optimizer, learn_rate=0.1):
         self.iteration += 1
 
-        errors = applyActivationGradient(self.activation_func, errors_raw, predicted).flatten().transpose()
+        errors = applyActivationGradient(self.activation_func, errors_raw, predicted).transpose()
 
         kerneledTransposed = kernel(input_set, self.kernel_size_rows, self.kernel_size_cols, self.step_size_rows, self.step_size_rows).transpose()
 
@@ -115,4 +106,3 @@ class Convolutional:
 
     def returnNetwork(self):
         return self.weights, self.pWeights, self.rmsWeights, self.bias, self.pBias, self.rmsBias
-        # Add a seperate constructor to custom load in these values

@@ -1,7 +1,4 @@
-# Takes the dot product of two input vectors
-# This probably isnt necessary for the actual functions
-# Add 1 to 2
-
+# Adds matrix2 to matrix1
 def add(matrix1, matrix2):
     if (matrix1.size() != matrix2.size()): raise Exception(f"Matrices must be same size! Matrix size 1: {matrix1.size()} | Matrix size 2: {matrix2.size()}")
 
@@ -138,7 +135,6 @@ class Matrix:
         return Matrix(arr=self.__matrix)
 
     def pad(self, pad_up=0, pad_down=0, pad_left=0, pad_right=0, pad_val=lambda: 0):
-        # I want to create a newly sized array and then for all the indexes in the range I want to shift them over by the horizontal and the vertical
         size = self.size()
         size_rows = size[0]
         size_cols = size[1]
@@ -168,7 +164,6 @@ class Matrix:
 
         return Matrix(arr=mat)
 
-    # Rotates the matrix by pi radians
     def rotate(self):
         rowsLen = self.size()[0] 
         tempMat = self.returnMatrix()
@@ -182,7 +177,6 @@ class Matrix:
     def returnMatrix(self):
         return self.__matrix
 
-    # This will need refactoring
     def size(self):
         return len(self.__matrix), len(self.__matrix[0])
 

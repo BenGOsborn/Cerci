@@ -1,4 +1,5 @@
 import matrix
+import tensor
 from misc import applyActivationGradient
 from math import ceil
 
@@ -71,14 +72,15 @@ class Convolutional:
         self.rmsBias = 0
         self.iteration = 0
 
-    def predict(self, inputs):
+    def predict(self, inputs, applyActivation=True):
         wKernel = weightedKernel(inputs, self.weights, self.step_size_rows, self.step_size_cols)
         biasSet = matrix.Matrix(dims=wKernel.size(), init=lambda: self.bias)
 
         out = matrix.add(wKernel, biasSet)
 
-        outCpy = out.clone()
-        out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy))
+        if (applyActivation):
+            outCpy = out.clone()
+            out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy))
 
         return out
 
@@ -106,3 +108,31 @@ class Convolutional:
 
     def returnNetwork(self):
         return self.weights, self.pWeights, self.rmsWeights, self.bias, self.pBias, self.rmsBias
+
+# Since the kernels in each weight set will be different, then technically we can treat it to be seperate and then take the sum of it and then treat that as the output error for that layer
+# HERES WHAT I CAN DO
+# Take each kernel and perform normal prediction, then add each prediction together to be a combined row for the different kernels
+# Then when we do backprop we calculate this error normally with the same hidden error value for each layer
+# This way our convolveMulti layer is just a set of 2d layers
+
+# Redo the entire thing with tensors
+class ConvolutionalMulti:
+    def __init__(self, weightTensor, biasTensor, step_size_rows, step_size_cols, activation_func):
+        self.convNets = []
+        tensors = zip(weightTensor.returnTensor(), biasTensor.returnTensor())
+        for weights, bias in zip(tensors):
+            net = Convolutional(weights, bias, step_size_rows, step_size_cols, activation_func)
+            self.convNets.append(net)
+
+    # It isnt applying relu until after noooo! Surely theres a way to bypass this
+    def predict(self, inputTensor):
+        if inputTensor.size()[2] != len(self.convNets): raise Exception(f"Tensor depths are not the same! Input depth: {inputTensor.size()[2]} | Kernel tensor depth: {len(self.convNets)}")
+        inTensorsRaw = inputTensor.returnTensor()
+
+        # I need some sort of tensor sum functionality which returns a matrix
+        # This will sum the entire tensor
+
+        tensorRaw = []
+        for channel, net in zip(inTensorsRaw, self.convNets):
+            out = net.predict(channel, applyActivation=False)
+            tensorRaw.append(out)

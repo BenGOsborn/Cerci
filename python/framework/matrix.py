@@ -64,14 +64,6 @@ def multiplyMatrices(matrix1, matrix2):
 
     return Matrix(arr=matrixNew)
 
-def matrixAverage(matrix):
-    new_matrix = matrix.flatten()
-    ln = new_matrix.size()[1]
-    sm = sum(new_matrix.returnMatrix()[0])
-    avg = sm/ln
-
-    return avg
-
 def matrixSum(matrix):
     flat = matrix.flatten().returnMatrix()[0]
     return sum(flat)

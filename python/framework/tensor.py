@@ -1,5 +1,13 @@
 import matrix
 
+def tensorSum(inputTensor):
+    tensors = inputTensor.returnTensor()
+    sumMatrix = tensors[0]
+    for i in range(1, len(tensors)):
+        sumTotal = matrix.add(sumMatrix, tensors[i])
+
+    return sumTotal
+
 # When we abstract a tensor here we mean a multi dimensional object which can be fed into the others
 # We should think about these in terms of layers rather than tensors, where they are layers stacked on top of each other
 class Tensor:

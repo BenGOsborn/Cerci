@@ -84,10 +84,13 @@ class Convolutional:
 
         return out
 
-    def train(self, input_set, predicted, errors_raw, optimizer, learn_rate=0.1):
+    def train(self, input_set, predicted, errors_raw, optimizer, applyActivation=True, learn_rate=0.1):
         self.iteration += 1
 
-        errors = applyActivationGradient(self.activation_func, errors_raw, predicted).transpose()
+        if (applyActivation):
+            errors = applyActivationGradient(self.activation_func, errors_raw, predicted).transpose()
+        else:
+            errors = errors_raw
 
         kerneledTransposed = kernel(input_set, self.kernel_size_rows, self.kernel_size_cols, self.step_size_rows, self.step_size_rows).transpose()
 
@@ -114,25 +117,37 @@ class Convolutional:
 # Take each kernel and perform normal prediction, then add each prediction together to be a combined row for the different kernels
 # Then when we do backprop we calculate this error normally with the same hidden error value for each layer
 # This way our convolveMulti layer is just a set of 2d layers
-
-# Redo the entire thing with tensors
 class ConvolutionalMulti:
     def __init__(self, weightTensor, biasTensor, step_size_rows, step_size_cols, activation_func):
+        self.activation_func = activation_func
+
         self.convNets = []
         tensors = zip(weightTensor.returnTensor(), biasTensor.returnTensor())
         for weights, bias in zip(tensors):
             net = Convolutional(weights, bias, step_size_rows, step_size_cols, activation_func)
             self.convNets.append(net)
 
-    # It isnt applying relu until after noooo! Surely theres a way to bypass this
     def predict(self, inputTensor):
         if inputTensor.size()[2] != len(self.convNets): raise Exception(f"Tensor depths are not the same! Input depth: {inputTensor.size()[2]} | Kernel tensor depth: {len(self.convNets)}")
         inTensorsRaw = inputTensor.returnTensor()
-
-        # I need some sort of tensor sum functionality which returns a matrix
-        # This will sum the entire tensor
 
         tensorRaw = []
         for channel, net in zip(inTensorsRaw, self.convNets):
             out = net.predict(channel, applyActivation=False)
             tensorRaw.append(out)
+
+        outRaw = tensor.tensorSum(tensor.Tensor(tensorRaw))
+        outCpy = outRaw.clone()
+        outActivation = outRaw.applyFunc(lambda x: self.activation_func(x, vals=outCpy))
+        
+        return outActivation
+
+    def train(self, inputTensor, predicted, errors_raw, optimizer, learn_rate=0.1):
+
+        # So since we already have a way of training the weights, its about distributing them properly each time
+        # So we pass through the errors raw which act as the errors for all of the values, and then we pass through the main prediction to be the prediction for all of the values
+
+        # So this is going to do what we normally would of done for each layer of the network except its one big computation this time
+        errors = applyActivationGradient(self.activation_func, errors_raw, predicted).transpose()
+
+        pass

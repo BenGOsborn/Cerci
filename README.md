@@ -14,7 +14,9 @@
 ## :pushpin: TODO
 * Add batch normalization to the network
 * Add weight initializing functions using the proper weight generation techniques
-* Make some of the class functions return a value and not just update the original value, possibly make them into their own subfunctions outside of the class
 * Cleanup the files and optimize the matrix operations and misc functions
-* Cleanup the 'shape' feature wherever it is called as it can now be accessed with th
 * Remove unused functions from the misc library
+* Have the returnNetwork() function return the ADAM values aswell for further training which can be loaded in
+* Add a random weight initialization tool so that the weights do not have to be initialized each time and can rather be a number which will be generated as a tensor or a matrix
+* Refactor the tensor classes into one big class which can support tensors of any length for simplicity, as well as reconfiguring the convolutional layers into one bigger class
+* Some of the training predictions and things have been broken by the change to the requirements from the single convnet

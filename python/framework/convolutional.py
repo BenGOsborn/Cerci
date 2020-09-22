@@ -131,8 +131,8 @@ class ConvolutionalBlockSingle:
         self.activation_func = activation_func
 
         self.convNets = []
-        tensors = zip(weightTensor.returnTensor(), biasTensor.returnTensor())
-        for weights, bias in zip(tensors):
+        matrices = zip(weightTensor.returnTensor(), biasTensor.returnTensor())
+        for weights, bias in matrices:
             net = ConvolutionalBlockRaw(weights, bias, step_size_rows, step_size_cols, activation_func)
             self.convNets.append(net)
 
@@ -141,8 +141,8 @@ class ConvolutionalBlockSingle:
         inTensorsRaw = inputTensor.returnTensor()
 
         tensorRaw = []
-        for channel, net in zip(inTensorsRaw, self.convNets):
-            out = net.predict(channel, applyActivation=False)
+        for matrix, net in zip(inTensorsRaw, self.convNets):
+            out = net.predict(matrix, applyActivation=False)
             tensorRaw.append(out)
 
         outRaw = tensor.tensorSum(tensor.Tensor(tensorRaw))
@@ -163,6 +163,22 @@ class ConvolutionalBlockSingle:
 
 # This is where the main blocks are composed and then trained with
 # This entire code base is messy and needs to be refactored especially with the different subsets of the tensors I have created
+
+# This code base is meant to be for taking a bunch of input matrices and then allowing for the output to flow out
+# Check all the inputs and how it relates to the previous one
 class Convolutional:
-    def __init__(self):
+    def __init__(self, weightsMultiTensor, biasMultiTensor, step_size_rows, step_size_cols, activation_func):
+        self.activation_func = activation_func
+
+        self.convNets = []
+        tensors = zip(weightsMultiTensor, biasMultiTensor)
+        for weights, bias in tensors:
+            cnnBlock = ConvolutionalBlockSingle(weights, bias, step_size_rows, step_size_cols, activation_func)
+            self.convNets.append(cnnBlock)
+
+    def predict(self, inputTensor):
+        # We want to return a tensor here
+        # What inputs does it take, what does this do?
+        # Wait no it takes in the single outputs and then convolves these features doesnt it?
+        # Reestablish how the rest of these functions work
         pass

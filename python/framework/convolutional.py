@@ -148,7 +148,7 @@ class ConvolutionalBlockSingle:
         outRaw = tensor.tensorSum(tensor.Tensor(tensorRaw))
         outCpy = outRaw.clone()
         outActivation = outRaw.applyFunc(lambda x: self.activation_func(x, vals=outCpy))
-        
+    
         return outActivation
 
     def train(self, inputTensor, predicted, errors_raw, optimizer, learn_rate=0.1):
@@ -166,6 +166,9 @@ class ConvolutionalBlockSingle:
 
 # This code base is meant to be for taking a bunch of input matrices and then allowing for the output to flow out
 # Check all the inputs and how it relates to the previous one
+
+# So this deals withe the multiple outputs that are created from different kernel values
+# This means that the input tensor stays the same and it is the tensors that change
 class Convolutional:
     def __init__(self, weightsMultiTensor, biasMultiTensor, step_size_rows, step_size_cols, activation_func):
         self.activation_func = activation_func
@@ -177,8 +180,13 @@ class Convolutional:
             self.convNets.append(cnnBlock)
 
     def predict(self, inputTensor):
-        # We want to return a tensor here
-        # What inputs does it take, what does this do?
-        # Wait no it takes in the single outputs and then convolves these features doesnt it?
-        # Reestablish how the rest of these functions work
+        outputs = []
+        for net in self.convNets:
+            predictionMatrix = net.predict(inputTensor) # ACTIVATIOJN WEIRD
+            outputs.append(predictionMatrix)
+
+        return tensor.Tensor(outputs)
+
+    def train(self, inputTensor, predictedTensor, errors_rawTensor, optimizer, learn_rate=0.1):
+        # So its going to have regular tensors flowing in and out of it and therefore we can deal with these tensors through the matrices, the weights are being dealt with automatically
         pass

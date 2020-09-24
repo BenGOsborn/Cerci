@@ -55,7 +55,7 @@ def dilate(toDilate, kernel_size_rows, kernel_size_cols, step_size_rows, step_si
 
     return padded
 
-class ConvolutionalBlockRaw:
+class Conv2d:
     def __init__(self, weight_set, bias, step_size_rows, step_size_cols, activation_func):
         self.weights = weight_set
         self.bias = bias
@@ -87,8 +87,6 @@ class ConvolutionalBlockRaw:
     def train(self, input_set, errors_raw, optimizer, predicted=None, applyActivation=True, learn_rate=0.1):
         self.iteration += 1
 
-        # I should probably just make the activations and the predicted to be toggleable so if the activation function is not applied then there is no predictions and vice versa
-
         if (applyActivation):
             errors = applyActivationGradient(self.activation_func, errors_raw, predicted).transpose()
         else:
@@ -114,26 +112,14 @@ class ConvolutionalBlockRaw:
     def returnNetwork(self):
         return self.weights, self.pWeights, self.rmsWeights, self.bias, self.pBias, self.rmsBias
 
-# Since the kernels in each weight set will be different, then technically we can treat it to be seperate and then take the sum of it and then treat that as the output error for that layer
-# HERES WHAT I CAN DO
-# Take each kernel and perform normal prediction, then add each prediction together to be a combined row for the different kernels
-# Then when we do backprop we calculate this error normally with the same hidden error value for each layer
-# This way our convolveMulti layer is just a set of 2d layers
-
-# Im going to want to treat these as a big tensor where we give it some tensor size and then it spits out another tensor size
-# So we build it for this layer and then fork it on top of this with a higher level layer
-# Also the flattening layer is going to be a bit of a pain
-
-# We can see that this will just be a single output and therefore for the network to be successful it must be fed a variety of outputs from the network which will be the highest level block
-# This will require a multidimension tensor class which supports multi level tensors
-class ConvolutionalBlockSingle:
-    def __init__(self, weightTensor, biasTensor, step_size_rows, step_size_cols, activation_func):
+class ConvBlock:
+    def __init__(self, weightTensor, biasMatrix, step_size_rows, step_size_cols, activation_func):
         self.activation_func = activation_func
 
         self.convNets = []
-        matrices = zip(weightTensor.returnTensor(), biasTensor.returnTensor())
+        matrices = zip(weightTensor.returnTensor(), biasMatrix.returnMatrix().flatten()[0])
         for weights, bias in matrices:
-            net = ConvolutionalBlockRaw(weights, bias, step_size_rows, step_size_cols, activation_func)
+            net = Conv2d(weights, bias, step_size_rows, step_size_cols, activation_func)
             self.convNets.append(net)
 
     def predict(self, inputTensor):
@@ -161,32 +147,30 @@ class ConvolutionalBlockSingle:
 
         return tensor.Tensor(backErrors)
 
-# This is where the main blocks are composed and then trained with
-# This entire code base is messy and needs to be refactored especially with the different subsets of the tensors I have created
-
-# This code base is meant to be for taking a bunch of input matrices and then allowing for the output to flow out
-# Check all the inputs and how it relates to the previous one
-
-# So this deals withe the multiple outputs that are created from different kernel values
-# This means that the input tensor stays the same and it is the tensors that change
-class Convolutional:
-    def __init__(self, weightsMultiTensor, biasMultiTensor, step_size_rows, step_size_cols, activation_func):
+# How does the output shape affect the rest of the network, I need to do some sort of test convolution for this one
+# I also need to check where the activation function gets applied so we can take the derivatives properly
+class Conv:
+    def __init__(self, weightsFilters, biasFilterTensor, step_size_rows, step_size_cols, activation_func):
         self.activation_func = activation_func
 
         self.convNets = []
-        tensors = zip(weightsMultiTensor, biasMultiTensor)
-        for weights, bias in tensors:
-            cnnBlock = ConvolutionalBlockSingle(weights, bias, step_size_rows, step_size_cols, activation_func)
+        for weights, bias in zip(weightsFilters.returnFilters(), biasFilterTensor.returnTensor()):
+            cnnBlock = ConvBlock(weights, bias, step_size_rows, step_size_cols, activation_func)
             self.convNets.append(cnnBlock)
 
     def predict(self, inputTensor):
         outputs = []
         for net in self.convNets:
-            predictionMatrix = net.predict(inputTensor) # ACTIVATIOJN WEIRD
+            predictionMatrix = net.predict(inputTensor) 
             outputs.append(predictionMatrix)
 
         return tensor.Tensor(outputs)
 
     def train(self, inputTensor, predictedTensor, errors_rawTensor, optimizer, learn_rate=0.1):
-        # So its going to have regular tensors flowing in and out of it and therefore we can deal with these tensors through the matrices, the weights are being dealt with automatically
-        pass
+
+        hiddenPrev = []
+        for errorsRaw, predicted, cnn in zip(self.convNets, predictedTensor.returnTensor(), errorsRaw.returnTensor()):
+            hidden = cnn.train(inputTensor, predicted, errorsRaw, optimizer, learn_rate=learn_rate)
+            hiddenPrev.append(hidden)
+
+        return tensor.Tensor(hiddenPrev)

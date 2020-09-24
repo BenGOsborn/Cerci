@@ -114,10 +114,12 @@ class Conv2d:
 
 class ConvBlock:
     def __init__(self, weightTensor, biasMatrix, step_size_rows, step_size_cols, activation_func):
+        if (weightTensor.size()[-1] != biasMatrix.size()[-1]): raise Exception(f"Tensor depths of weights and biases do not line up: Weight depth: {weightTensor.size()[-1]} | Bias depth: {biasMatrix.size()[-1]}")
+
         self.activation_func = activation_func
 
         self.convNets = []
-        matrices = zip(weightTensor.returnTensor(), biasMatrix.returnMatrix().flatten()[0])
+        matrices = zip(weightTensor.returnTensor(), biasMatrix.flatten().returnMatrix()[0])
         for weights, bias in matrices:
             net = Conv2d(weights, bias, step_size_rows, step_size_cols, activation_func)
             self.convNets.append(net)
@@ -151,6 +153,8 @@ class ConvBlock:
 # I also need to check where the activation function gets applied so we can take the derivatives properly
 class Conv:
     def __init__(self, weightsFilters, biasFilterTensor, step_size_rows, step_size_cols, activation_func):
+        if (weightsFilters.size()[-1] != biasFilterTensor.size()[-1]): raise Exception(f"Tensor numbers are not the same! Weights numbers: {weightsFilters.size()[-1]} | Bias numbers: {biasFilterTensor.size()[-1]}")
+
         self.activation_func = activation_func
 
         self.convNets = []
@@ -174,3 +178,42 @@ class Conv:
             hiddenPrev.append(hidden)
 
         return tensor.Tensor(hiddenPrev)
+
+class Flatten:
+    def __init__(self):
+        # Now I'm going to have to keep some sort of reference for how the network will take in the values and store them for their appropriate values and into their appropriate tensors
+        # For example if I flatten a specific kind of tensor then ti will do some wacky stuff
+
+        # This means we will have to split the output matrix by the tensor length of each, and then for each split section we need to turn them into a big tensor
+
+        # So now we want to carry through the shape of the input tensor parsed through
+
+        self.__out_rows = None
+        self.__out_cols = None
+        self.__out_layers = None
+        self.__input_tensor = None
+        
+    def flatten(self, inputTensor):
+        self.__input_tensor = inputTensor
+        self.__out_rows, self.__out_cols, self.__out_layers = inputTensor.size()
+
+        out = []
+        for mat in inputTensor.returnTensor():
+            flatMat = mat.flatten().returnMatrix()[0] 
+            for val in flatMat:
+                out.append(val)
+
+        return matrix.Matrix(out)
+
+    def reshapeErrors(self, flatErrors):
+        flatErrorRaw = flatErrors.returnMatrix()[0]
+
+        size = self.__out_rows * self.__out_cols
+        matrices = []
+        for i in range(self.__out_layers):
+            matRaw = flatErrorRaw[i*size:(i+1)*size]
+            mat = matrix.Matrix(arr=matRaw)
+            matReshaped = mat.reshape(self.__out_rows, self.__out_cols)
+            matrices.append(matReshaped)
+
+        return tensor.Tensor(matrices)

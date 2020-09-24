@@ -6,9 +6,9 @@ def tensorSum(tensor):
     tensors = tensor.returnTensor()
     sumMatrix = tensors[0]
     for tser in tensors[1:]:
-        sumTotal = matrix.add(sumMatrix, tser)
+        sumMatrix = matrix.add(sumMatrix, tser)
 
-    return sumTotal
+    return sumMatrix
 
 class Tensor:
     def validTensor(self):
@@ -40,15 +40,15 @@ class Tensor:
         return matSize[0], matSize[1], len(self.__tensor)
 
 class ConvFilter:
-    def __init__(self, row_size, col_size, filter_depth, filter_number):
+    def __init__(self, kernel_width, kernel_height, filter_depth, filter_number):
         self.__filters = []
         for _ in range(filter_number):
-            genMatrix = [matrix.Matrix(dims=[row_size, col_size], init=lambda: random()-0.5) for _ in range(filter_depth)]
+            genMatrix = [matrix.Matrix(dims=[kernel_height, kernel_width], init=lambda: random()-0.5) for _ in range(filter_depth)]
             matrixTensor = Tensor(genMatrix)
             self.__filters.append(matrixTensor)
 
-        self.__row_size = row_size
-        self.__col_size = col_size
+        self.__row_size = kernel_height
+        self.__col_size = kernel_width
         self.__filter_depth = filter_depth
         self.__filter_number = filter_number
 
@@ -83,4 +83,7 @@ class BiasConvTensor:
         return self.__biasTensor
 
     def returnBias(self):
+        return self.__filter_depth, self.__filter_number
+
+    def size(self):
         return self.__filter_depth, self.__filter_number

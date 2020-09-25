@@ -217,3 +217,70 @@ class Flatten:
             matrices.append(matReshaped)
 
         return tensor.Tensor(matrices)
+
+class Pool:
+    def __init__(self, kernel_size_rows, kernel_size_cols, step_size_rows, step_size_cols):
+        self.__kernel_size_rows = kernel_size_rows
+        self.__kernel_size_cols = kernel_size_cols
+        self.__step_size_rows = step_size_rows
+        self.__step_size_cols = step_size_cols
+        self.__tensorIndexes = []
+
+    def __maxMatrix(self, inMatrix):
+        flat = inMatrix.flatten().returnMatrix()[0]
+
+        mx = 0
+        dex = 0
+        for i, val in enumerate(flat):
+            if val > mx:
+                mx = val
+                dex = i
+
+        row = 0
+        while (dex > 0):
+            dex-inMatrix.size()[1]
+            row += 1
+
+        return mx, row, dex
+
+    def __poolMatrix(self, inMatrix):
+        size = inMatrix.size()
+
+        retMatrix = []
+        storeMatrix = []
+        for rowNum in range(size[0]-self.__kernel_size_rows+1):
+            tempRowRet = []
+            tempRowStore = []
+            for colNum in range(size[1]-self.__kernel_size_cols+1):
+                if ((rowNum % self.__step_size_rows == 0) and (colNum % self.__step_size_cols == 0)):
+                    tempTrix = inMatrix.cut(rowNum, rowNum+self.__kernel_size_rows, colNum, colNum+self.__kernel_size_cols)
+                    mx, relRow, relCol = self.__maxMatrix(tempTrix)
+                    tempRowRet.append(mx)
+
+                    # Am I going to need the mx too for this one, or just keep all of this?
+                    # This will give us the coord points for where the error corresponds to so we can add it up correctly
+                    tempRowStore.append([rowNum+relRow, colNum+relCol])
+
+            retMatrix.append(tempRowRet)
+            storeMatrix.append(tempRowStore)
+
+        matStoreMatrix = matrix.Matrix(arr=storeMatrix)
+        self.__tensorIndexes.append(matStoreMatrix)
+        return matrix.Matrix(arr=storeMatrix)
+
+    def pool(self, inputTensor):
+        self.__tensorIndexes = []
+        tensorRaw = inputTensor.returnTensor()
+
+        tempTensor = []
+        for mat in tensorRaw:
+            pooledMatrix = self.__poolMatrix(mat) 
+            tempTensor.append(pooledMatrix)
+
+        # So now that I have the data for the array which is not getting stored how do I extract this information for the error layers
+        # Or more like how do I store these values appropriately andparse them through
+
+        return tensor.Tensor(tempTensor)
+
+    def reshapeErrors(self, unshapedErrors):
+        pass

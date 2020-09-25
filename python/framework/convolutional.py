@@ -149,6 +149,8 @@ class ConvBlock:
 
         return tensor.Tensor(backErrors)
 
+# Maybe I should just stick to a single convolutional block and skip the intermediary
+
 # How does the output shape affect the rest of the network, I need to do some sort of test convolution for this one
 # I also need to check where the activation function gets applied so we can take the derivatives properly
 class Conv:
@@ -171,9 +173,8 @@ class Conv:
         return tensor.Tensor(outputs)
 
     def train(self, inputTensor, predictedTensor, errors_rawTensor, optimizer, learn_rate=0.1):
-
         hiddenPrev = []
-        for errorsRaw, predicted, cnn in zip(self.convNets, predictedTensor.returnTensor(), errorsRaw.returnTensor()):
+        for cnn, predicted, errorsRaw in zip(self.convNets, predictedTensor.returnTensor(), errors_rawTensor.returnTensor()):
             hidden = cnn.train(inputTensor, predicted, errorsRaw, optimizer, learn_rate=learn_rate)
             hiddenPrev.append(hidden)
 
@@ -235,7 +236,7 @@ class Pool:
 
         row = 0
         while (dex > 0):
-            dex-inMatrix.size()[1]
+            dex -= inMatrix.size()[1]
             row += 1
 
         return mx, row, dex

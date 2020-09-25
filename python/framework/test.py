@@ -56,28 +56,36 @@ data_set = mnist_parser.loadData("python/framework/data.pickle")
 
 weightsFilters = tensor.ConvFilter(5, 5, 1, 1)
 biasTensor = tensor.BiasConvTensor(1, 1)
-weight_set = matrix.Matrix(dims=[10, 32], init=lambda: misc.weightRandom())
+weight_set = matrix.Matrix(dims=[10, 16], init=lambda: misc.weightRandom())
 bias_set = matrix.Matrix(dims=[10, 1], init=lambda: misc.weightRandom())
 
 block = convolutional.Conv(weightsFilters, biasTensor, 1, 1, misc.relu)
 poolLayer = convolutional.Pool(5, 5, 5, 5)
 flatten = convolutional.Flatten()
-fc = fullyconnected.FullyConnected(weight_set, bias_set, misc.sigmoid)
+fc = fullyconnected.FullyConnected(weight_set, bias_set, misc.softmax)
 
 inp = data_set[0][0]
-print(inp.size())
-inp = matrix.Matrix(dims=[16, 16], init=lambda: misc.weightRandom())
 inputs = tensor.Tensor([inp])
+training = data_set[0][1]
 
-pred = block.predict(inputs)
-print("DIDPRED")
-pooled = poolLayer.pool(pred)
-# I think that there is combinatorial explosion on the pool layer
-print("DIDPOOL")
-flattened = flatten.flatten(pooled).transpose()
-predOut = fc.predict(flattened)
+for _ in range(50):
+    for dt in data_set[:10]:
+        inputs = tensor.Tensor([dt[0]])
+        training = dt[1]
 
-predOut.print()
+        pred = block.predict(inputs)
+        pooled = poolLayer.pool(pred)
+        flattened = flatten.flatten(pooled).transpose()
+        predOut = fc.predict(flattened)
+
+        predOutErr = misc.getDifferences(misc.crossEntropy, predOut, training)
+        hiddenFlat = fc.train(flattened, predOut, predOutErr, misc.adam)
+        pooledError = flatten.reshapeErrors(hiddenFlat.transpose())
+        unPooled = poolLayer.reshapeErrors(pooledError)
+        block.train(inputs, pred, unPooled, misc.adam)
+
+predOut.transpose().print()
+training.print()
 
 # The network is slow how am I going to be able to fix this?
 # I should include in the tensor class and the matrix class the ability to look at values in the matrix without having to return all of the time even though its in multiple dimensions

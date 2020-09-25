@@ -5,7 +5,7 @@ from random import shuffle
 
 def parser(val, num_options=10):
         empty_row = [0 for _ in range(num_options)]
-        empty_row[int(val-1)] = 1
+        empty_row[int(val)] = 1
 
         return empty_row
 

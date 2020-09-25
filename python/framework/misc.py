@@ -35,6 +35,7 @@ def crossEntropy(predicted, actual):
     return -1*(actual/predicted) + (1-actual)/(1-predicted)
 
 # Applies the activation gradient to the errors for backporop
+# This returns the matrix in the form of a single flat layer so it will need to be transposed for some things and other things
 def applyActivationGradient(activation, errors, predicted):
     pred = predicted.flatten().returnMatrix()[0]
     errors  = errors.flatten().returnMatrix()[0]

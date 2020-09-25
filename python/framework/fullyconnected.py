@@ -25,8 +25,7 @@ class FullyConnected:
     def train(self, input_set, predicted, errors_raw, optimizer, learn_rate=0.1):
         self.iteration += 1
 
-        errors = applyActivationGradient(self.activation_func, errors_raw, predicted)
-
+        errors = applyActivationGradient(self.activation_func, errors_raw, predicted).transpose()
         inputTransposed = input_set.transpose()
 
         w_AdjustmentsRaw = matrix.multiplyMatrices(errors, inputTransposed)

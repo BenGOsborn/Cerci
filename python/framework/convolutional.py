@@ -224,6 +224,9 @@ class Pool:
         self.__kernel_size_cols = kernel_size_cols
         self.__step_size_rows = step_size_rows
         self.__step_size_cols = step_size_cols
+
+        self.__orig_matrix_rows = 0
+        self._orig_matrix_cols = 0
         self.__tensorIndexes = []
 
     def __maxMatrix(self, inMatrix):
@@ -269,7 +272,10 @@ class Pool:
         return matrix.Matrix(arr=storeMatrix)
 
     def pool(self, inputTensor):
-        self.__tensorIndexes = []
+        tensorSize = inputTensor.size()
+        self.__orig_matrix_rows = tensorSize[0]
+        self._orig_matrix_cols = tensorSize[1]
+        
         tensorRaw = inputTensor.returnTensor()
 
         tempTensor = []
@@ -277,10 +283,9 @@ class Pool:
             pooledMatrix = self.__poolMatrix(mat) 
             tempTensor.append(pooledMatrix)
 
-        # So now that I have the data for the array which is not getting stored how do I extract this information for the error layers
-        # Or more like how do I store these values appropriately andparse them through
-
         return tensor.Tensor(tempTensor)
 
     def reshapeErrors(self, unshapedErrors):
+        # I need to take through the errors and then parse them into their correct positions properly, which means I will need the correct sizes of the tensors for this
+
         pass

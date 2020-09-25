@@ -5,7 +5,7 @@ import matrix
 import tensor
 import mnist_parser
 
-# data_set = mnist_parser.loadData("python/framework/data.pickle")
+data_set = mnist_parser.loadData("python/framework/data.pickle")
 
 # weights1 = matrix.Matrix(dims=[2, 2], init=lambda: misc.weightRandom())
 # bias1 = misc.weightRandom() 
@@ -54,16 +54,30 @@ import mnist_parser
 # c1.returnNetwork()[0].print()
 # print([c1.returnNetwork()[3]])
 
-weightsFilters = tensor.ConvFilter(4, 4, 1, 3)
-biasTensor = tensor.BiasConvTensor(1, 3)
+weightsFilters = tensor.ConvFilter(5, 5, 1, 1)
+biasTensor = tensor.BiasConvTensor(1, 1)
+weight_set = matrix.Matrix(dims=[10, 32], init=lambda: misc.weightRandom())
+bias_set = matrix.Matrix(dims=[10, 1], init=lambda: misc.weightRandom())
 
 block = convolutional.Conv(weightsFilters, biasTensor, 1, 1, misc.relu)
+poolLayer = convolutional.Pool(5, 5, 5, 5)
 flatten = convolutional.Flatten()
+fc = fullyconnected.FullyConnected(weight_set, bias_set, misc.sigmoid)
 
-mat = matrix.Matrix(dims=[7, 7], init=lambda: 0.5)
-inputs = tensor.Tensor([mat])
+inp = data_set[0][0]
+print(inp.size())
+inp = matrix.Matrix(dims=[16, 16], init=lambda: misc.weightRandom())
+inputs = tensor.Tensor([inp])
 
 pred = block.predict(inputs)
-flattened = flatten.flatten(pred)
+print("DIDPRED")
+pooled = poolLayer.pool(pred)
+# I think that there is combinatorial explosion on the pool layer
+print("DIDPOOL")
+flattened = flatten.flatten(pooled).transpose()
+predOut = fc.predict(flattened)
 
-# How am I going to create  flattening layer for this? It will probably relate somewhat back to the pooling layer too?
+predOut.print()
+
+# The network is slow how am I going to be able to fix this?
+# I should include in the tensor class and the matrix class the ability to look at values in the matrix without having to return all of the time even though its in multiple dimensions

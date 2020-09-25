@@ -181,13 +181,6 @@ class Conv:
 
 class Flatten:
     def __init__(self):
-        # Now I'm going to have to keep some sort of reference for how the network will take in the values and store them for their appropriate values and into their appropriate tensors
-        # For example if I flatten a specific kind of tensor then ti will do some wacky stuff
-
-        # This means we will have to split the output matrix by the tensor length of each, and then for each split section we need to turn them into a big tensor
-
-        # So now we want to carry through the shape of the input tensor parsed through
-
         self.__out_rows = None
         self.__out_cols = None
         self.__out_layers = None
@@ -233,7 +226,7 @@ class Pool:
     def __maxMatrix(self, inMatrix):
         flat = inMatrix.flatten().returnMatrix()[0]
 
-        mx = 0
+        mx = min(flat)
         dex = 0
         for i, val in enumerate(flat):
             if val > mx:
@@ -260,15 +253,15 @@ class Pool:
                     tempTrix = inMatrix.cut(rowNum, rowNum+self.__kernel_size_rows, colNum, colNum+self.__kernel_size_cols)
                     mx, relRow, relCol = self.__maxMatrix(tempTrix)
                     tempRowRet.append(mx)
-
-                    # Am I going to need the mx too for this one, or just keep all of this?
-                    # This will give us the coord points for where the error corresponds to so we can add it up correctly
                     tempRowStore.append([rowNum+relRow, colNum+relCol])
 
-            retMatrix.append(tempRowRet)
-            storeMatrix.append(tempRowStore)
+            # This could possibly be a big error we'll see with the if statements
+            if (len(tempRowRet) != 0):
+                retMatrix.append(tempRowRet)
+            if (len(tempRowStore) != 0):
+                storeMatrix.append(tempRowStore)
 
-        return matrix.Matrix(arr=storeMatrix), matrix.Matrix(arr=storeMatrix)
+        return matrix.Matrix(arr=retMatrix), matrix.Matrix(arr=storeMatrix)
 
     def pool(self, inputTensor):
         self.__orig_tensor_size = inputTensor.size()
@@ -287,10 +280,6 @@ class Pool:
         return tensor.Tensor(tempTensor)
 
     def reshapeErrors(self, unshapedErrors):
-        # I need to take through the errors and then parse them into their correct positions properly, which means I will need the correct sizes of the tensors for this
-        # I want to generate a matrix of zeroes and then fill the indexes based on the values
-
-        # We should also keep another kernel size for the output matrix sizes to check if it is the right length
         if (self.__orig_tensor_size[-1] != unshapedErrors.size()[-1]): raise Exception(f"Tensor depths are not the same! Original depth: {self.__orig_tensor_size[-1]} | Errors depth: {unshapedErrors.size()[-1]}")
         if (self.__orig_matrix_size != unshapedErrors.size()[:2]): raise Exception(f"Matrix sizes are not the same! Original size: {self.__orig_matrix_size} | Errors size: {unshapedErrors.size()[:2]}")
         
@@ -299,9 +288,9 @@ class Pool:
         coordTensor = self.__tensor_store_indexes.returnTensor()
 
         for depthNum in range(self.__orig_tensor_size[2]):
-            for rowNum in range(self.__orig_tensor_size[1]):
-                for colNum in range(self.__orig_tensor_size[0]):
-                    coords = coordTensor[depthNum][rowNum][colNum]
-                    zeroTensor[depthNum][coords[0]][coords[1]] += errorTensor[depthNum][rowNum][colNum]
+            for rowNum in range(self.__orig_matrix_size[1]):
+                for colNum in range(self.__orig_matrix_size[0]):
+                    coords = coordTensor[depthNum].returnMatrix()[rowNum][colNum]
+                    zeroTensor[depthNum][coords[0]][coords[1]] += errorTensor[depthNum].returnMatrix()[rowNum][colNum]
 
-        return tensor.Tensor(zeroTensor)
+        return tensor.Tensor([matrix.Matrix(arr=tser) for tser in zeroTensor])

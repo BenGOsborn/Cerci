@@ -1,10 +1,9 @@
 from math import exp, log
 from matrix import Matrix
-from random import choice
+from random import random
 
 def weightRandom():
-    ls = [-1, -0.5, 0, 0.5, 1]
-    return choice(ls)
+    return random()-0.5
 
 # Activation functions
 def sigmoid(x, vals=None, deriv=False):

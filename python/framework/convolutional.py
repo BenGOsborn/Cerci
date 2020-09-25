@@ -225,9 +225,10 @@ class Pool:
         self.__step_size_rows = step_size_rows
         self.__step_size_cols = step_size_cols
 
-        self.__orig_matrix_rows = 0
-        self._orig_matrix_cols = 0
-        self.__tensorIndexes = []
+        self.__orig_tensor_size = 0, 0, 0, 0
+        self.__tensor_store_indexes = None
+
+        self.__orig_matrix_size = 0, 0
 
     def __maxMatrix(self, inMatrix):
         flat = inMatrix.flatten().returnMatrix()[0]
@@ -267,25 +268,40 @@ class Pool:
             retMatrix.append(tempRowRet)
             storeMatrix.append(tempRowStore)
 
-        matStoreMatrix = matrix.Matrix(arr=storeMatrix)
-        self.__tensorIndexes.append(matStoreMatrix)
-        return matrix.Matrix(arr=storeMatrix)
+        return matrix.Matrix(arr=storeMatrix), matrix.Matrix(arr=storeMatrix)
 
     def pool(self, inputTensor):
-        tensorSize = inputTensor.size()
-        self.__orig_matrix_rows = tensorSize[0]
-        self._orig_matrix_cols = tensorSize[1]
-        
+        self.__orig_tensor_size = inputTensor.size()
         tensorRaw = inputTensor.returnTensor()
 
         tempTensor = []
+        tempStoreTensor = []
         for mat in tensorRaw:
-            pooledMatrix = self.__poolMatrix(mat) 
+            pooledMatrix, pooledStoreMatrix = self.__poolMatrix(mat) 
             tempTensor.append(pooledMatrix)
+            tempStoreTensor.append(pooledStoreMatrix)
+
+        self.__tensor_store_indexes = tensor.Tensor(tempStoreTensor)
+        self.__orig_matrix_size = pooledMatrix.size()
 
         return tensor.Tensor(tempTensor)
 
     def reshapeErrors(self, unshapedErrors):
         # I need to take through the errors and then parse them into their correct positions properly, which means I will need the correct sizes of the tensors for this
+        # I want to generate a matrix of zeroes and then fill the indexes based on the values
 
-        pass
+        # We should also keep another kernel size for the output matrix sizes to check if it is the right length
+        if (self.__orig_tensor_size[-1] != unshapedErrors.size()[-1]): raise Exception(f"Tensor depths are not the same! Original depth: {self.__orig_tensor_size[-1]} | Errors depth: {unshapedErrors.size()[-1]}")
+        if (self.__orig_matrix_size != unshapedErrors.size()[:2]): raise Exception(f"Matrix sizes are not the same! Original size: {self.__orig_matrix_size} | Errors size: {unshapedErrors.size()[:2]}")
+        
+        zeroTensor = [[[0 for _ in range(self.__orig_tensor_size[0])] for _ in range(self.__orig_tensor_size[1])] for _ in range(self.__orig_tensor_size[2])]
+        errorTensor = unshapedErrors.returnTensor()
+        coordTensor = self.__tensor_store_indexes.returnTensor()
+
+        for depthNum in range(self.__orig_tensor_size[2]):
+            for rowNum in range(self.__orig_tensor_size[1]):
+                for colNum in range(self.__orig_tensor_size[0]):
+                    coords = coordTensor[depthNum][rowNum][colNum]
+                    zeroTensor[depthNum][coords[0]][coords[1]] += errorTensor[depthNum][rowNum][colNum]
+
+        return tensor.Tensor(zeroTensor)

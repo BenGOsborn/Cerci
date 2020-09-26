@@ -36,11 +36,11 @@ def crossEntropy(predicted, actual):
 
 # Applies the activation gradient to the errors for backporop
 # This returns the matrix in the form of a single flat layer so it will need to be transposed for some things and other things
-def applyActivationGradient(activation, errors, predicted):
+def applyGradients(activation, errors, predicted, dropout_rate):
     pred = predicted.flatten().returnMatrix()[0]
     errors  = errors.flatten().returnMatrix()[0]
 
-    mat_partial = [error*activation(pred, deriv=True) for pred, error in zip(pred, errors)]
+    mat_partial = [error*activation(pred, deriv=True)*(1/(1-dropout_rate)) for pred, error in zip(pred, errors)]
     newMat = Matrix(arr=mat_partial)
 
     return newMat
@@ -55,6 +55,18 @@ def getDifferences(loss, predicted, training):
     newMat = Matrix(arr=mat_errors).reshape(shape[0], shape[1])
 
     return newMat
+
+# Normalization
+
+# This means I am going to have to add in this probability to the applyactivationgradient function
+def dropout(layer, dropout_rate):
+    if (dropout_rate == 0):
+        return layer
+    if (dropout_rate == 1):
+        dropout_rate = 0.999
+
+    droppedOut = layer.clone().applyFunc(lambda x: 0 if random()<dropout_rate else x/(1-dropout_rate))
+    return droppedOut
 
 # Optimizers
 def applyMomentum(p_prev, beta1, gradient):

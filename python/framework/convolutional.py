@@ -1,6 +1,6 @@
 import matrix
 import tensor
-from misc import applyActivationGradient
+from misc import applyGradients, dropout
 from math import ceil
 
 def kernel(inMatrix, kernel_size_rows, kernel_size_cols, step_size_rows, step_size_cols):
@@ -56,10 +56,11 @@ def dilate(toDilate, kernel_size_rows, kernel_size_cols, step_size_rows, step_si
     return padded
 
 class Conv2d:
-    def __init__(self, weight_set, bias, step_size_rows, step_size_cols, activation_func):
+    def __init__(self, weight_set, bias, step_size_rows, step_size_cols, activation_func, dropout_rate=0):
         self.weights = weight_set
         self.bias = bias
         self.activation_func = activation_func
+        self.dropout_rate = dropout_rate
 
         self.kernel_size_rows = weight_set.size()[0]
         self.kernel_size_cols = weight_set.size()[1]
@@ -78,17 +79,20 @@ class Conv2d:
 
         out = matrix.add(wKernel, biasSet)
 
+        # For all of the layers this dropout layer should come after the activation perhaps?
+        droppedOut = dropout(out, self.dropout_rate)
+
         if (applyActivation):
             outCpy = out.clone()
             out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy))
 
-        return out
+        return droppedOut
 
     def train(self, input_set, errors_raw, optimizer, predicted=None, applyActivation=True, learn_rate=0.1):
         self.iteration += 1
 
         if (applyActivation):
-            errors = applyActivationGradient(self.activation_func, errors_raw, predicted).transpose()
+            errors = applyGradients(self.activation_func, errors_raw, predicted, self.dropout_rate).transpose()
         else:
             errors = errors_raw
 
@@ -113,15 +117,16 @@ class Conv2d:
         return self.weights, self.pWeights, self.rmsWeights, self.bias, self.pBias, self.rmsBias
 
 class ConvBlock:
-    def __init__(self, weightTensor, biasMatrix, step_size_rows, step_size_cols, activation_func):
+    def __init__(self, weightTensor, biasMatrix, step_size_rows, step_size_cols, activation_func, dropout_rate=0):
         if (weightTensor.size()[-1] != biasMatrix.size()[-1]): raise Exception(f"Tensor depths of weights and biases do not line up: Weight depth: {weightTensor.size()[-1]} | Bias depth: {biasMatrix.size()[-1]}")
 
         self.activation_func = activation_func
+        self.dropout_rate = dropout_rate
 
         self.convNets = []
         matrices = zip(weightTensor.returnTensor(), biasMatrix.flatten().returnMatrix()[0])
         for weights, bias in matrices:
-            net = Conv2d(weights, bias, step_size_rows, step_size_cols, activation_func)
+            net = Conv2d(weights, bias, step_size_rows, step_size_cols, activation_func, dropout_rate=dropout_rate)
             self.convNets.append(net)
 
     def predict(self, inputTensor):
@@ -140,7 +145,7 @@ class ConvBlock:
         return outActivation
 
     def train(self, inputTensor, predicted, errors_raw, optimizer, learn_rate=0.1):
-        errors = applyActivationGradient(self.activation_func, errors_raw, predicted).transpose()
+        errors = applyGradients(self.activation_func, errors_raw, predicted, self.dropout_rate).transpose()
 
         backErrors = []
         for inputs, cnns in zip(inputTensor.returnTensor(), self.convNets):
@@ -154,14 +159,14 @@ class ConvBlock:
 # How does the output shape affect the rest of the network, I need to do some sort of test convolution for this one
 # I also need to check where the activation function gets applied so we can take the derivatives properly
 class Conv:
-    def __init__(self, weightsFilters, biasFilterTensor, step_size_rows, step_size_cols, activation_func):
+    def __init__(self, weightsFilters, biasFilterTensor, step_size_rows, step_size_cols, activation_func, dropout_rate=0):
         if (weightsFilters.size()[-1] != biasFilterTensor.size()[-1]): raise Exception(f"Tensor numbers are not the same! Weights numbers: {weightsFilters.size()[-1]} | Bias numbers: {biasFilterTensor.size()[-1]}")
 
         self.activation_func = activation_func
 
         self.convNets = []
         for weights, bias in zip(weightsFilters.returnFilters(), biasFilterTensor.returnTensor()):
-            cnnBlock = ConvBlock(weights, bias, step_size_rows, step_size_cols, activation_func)
+            cnnBlock = ConvBlock(weights, bias, step_size_rows, step_size_cols, activation_func, dropout_rate=dropout_rate)
             self.convNets.append(cnnBlock)
 
     def predict(self, inputTensor):

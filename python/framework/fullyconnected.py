@@ -1,11 +1,12 @@
 import matrix
-from misc import applyActivationGradient
+from misc import applyGradients, dropout
 
 class FullyConnected:
-    def __init__(self, weight_set, bias_set, activation_func):
+    def __init__(self, weight_set, bias_set, activation_func, dropout_rate=0):
         self.weights = weight_set
         self.bias = bias_set
         self.activation_func = activation_func
+        self.dropout_rate = dropout_rate
 
         self.pWeights = matrix.Matrix(dims=weight_set.size(), init=lambda: 0)
         self.pBias = matrix.Matrix(dims=bias_set.size(), init=lambda: 0)
@@ -17,15 +18,18 @@ class FullyConnected:
         multiplied = matrix.multiplyMatrices(self.weights, inputs)
         out = matrix.add(multiplied, self.bias)
 
+        # We need to make it so that the dropout comes after the activation for all of the values anyway
+        droppedOut = dropout(out, self.dropout_rate)
+
         outCpy = out.clone()
         out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy)) 
 
-        return out
+        return droppedOut
 
     def train(self, input_set, predicted, errors_raw, optimizer, learn_rate=0.1):
         self.iteration += 1
 
-        errors = applyActivationGradient(self.activation_func, errors_raw, predicted).transpose()
+        errors = applyGradients(self.activation_func, errors_raw, predicted, self.dropout_rate).transpose()
         inputTransposed = input_set.transpose()
 
         w_AdjustmentsRaw = matrix.multiplyMatrices(errors, inputTransposed)

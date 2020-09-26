@@ -59,7 +59,10 @@ biasTensor = tensor.BiasConvTensor(1, 1)
 weight_set = matrix.Matrix(dims=[10, 16], init=lambda: misc.weightRandom())
 bias_set = matrix.Matrix(dims=[10, 1], init=lambda: misc.weightRandom())
 
-block = convolutional.Conv(weightsFilters, biasTensor, 1, 1, misc.relu)
+# Check the dropout rates for everything
+# Do a cleanup of the codebase and add more regularization and normalization functions
+# Need to put dropout after the activation function
+block = convolutional.Conv(weightsFilters, biasTensor, 1, 1, misc.relu, dropout_rate=0.1)
 poolLayer = convolutional.Pool(5, 5, 5, 5)
 flatten = convolutional.Flatten()
 fc = fullyconnected.FullyConnected(weight_set, bias_set, misc.softmax)
@@ -68,7 +71,7 @@ inp = data_set[0][0]
 inputs = tensor.Tensor([inp])
 training = data_set[0][1]
 
-for _ in range(50):
+for _ in range(20):
     for dt in data_set[:10]:
         inputs = tensor.Tensor([dt[0]])
         training = dt[1]

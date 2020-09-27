@@ -18,6 +18,13 @@ class FullyConnected:
         multiplied = matrix.multiplyMatrices(self.weights, inputs)
         out = matrix.add(multiplied, self.bias)
 
+        if (not training):
+            print("BEFORE ACTIVATION")
+            out.print()
+            print("THIS MATTERS NOW")
+
+        # Something is wrong with these predictions and its unclear why
+        # The outcpy is changing on the fly what is going on here?
         outCpy = out.clone()
         out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy)) 
 

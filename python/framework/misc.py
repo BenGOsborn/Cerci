@@ -20,6 +20,8 @@ def softmax(val, vals=None, deriv=False):
     if deriv:
         return val*(1-val)
     vals = vals.flatten().returnMatrix()[0]
+    print("THE VAL TO EVALUATE: ", val)
+    print("SUM BOTTOM: ", sum([exp(x) for x in vals]))
     return exp(val)/sum([exp(x) for x in vals])
     
 # Loss functions

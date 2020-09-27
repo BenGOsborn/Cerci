@@ -3,22 +3,24 @@
 
 class Matrix {
     public:
-        Matrix(std::vector<float> *matrix) {
-            matrix_raw = {};
-            matrix_raw->push_back(*matrix);
-            // *rows = 1;
-            // *cols = matrix->size();
+        Matrix(std::vector<float> vec) {
+            matrix_raw->push_back(vec);
+            rows = new int(1);
+            cols = new int(vec.size());
         }
 
-        Matrix(std::vector<std::vector<float>> *matrix) {
-            *matrix_raw = *matrix;
-            *rows = matrix->size();
-            *cols = matrix->at(0).size();
+        Matrix(std::vector<std::vector<float>> matrix) {
+            // Probably a more efficient way of doing this
+            for (int i; i<matrix.size(); i++) {
+                matrix_raw->push_back(matrix[i]);
+            }
+            rows = new int(matrix.size());
+            cols = new int(matrix[0].size());
         }
 
         Matrix(std::vector<int> dims, float(*func)()) {
-            *rows = dims[0];
-            *cols = dims[1];
+            rows = new int(dims[0]);
+            cols = new int(dims[1]);
 
             std::vector<float> tempArray;
             float val;
@@ -47,18 +49,15 @@ class Matrix {
         }
 
     private:
-        std::vector<std::vector<float>> *matrix_raw;
+        std::vector<std::vector<float>> *matrix_raw = new std::vector<std::vector<float>>();
         int *rows, *cols;
 
 };
 
 int main() {
-    std::vector<float> arr = {1, 2, 3};
+    std::vector<float> arr = {1.0f, 2.0f, 3.0f};
 
-    // Why am I getting so many core dumps what is going on man?
-
-    // Gonna have to make sure that the vectors are all of the same lengths though or else is bad
-    Matrix *matrix = new Matrix(&arr);
+    Matrix *matrix = new Matrix(arr);
     std::cout << matrix->size()[0] << std::endl;
 
     return 0;

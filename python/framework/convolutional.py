@@ -73,20 +73,20 @@ class Conv2d:
         self.rmsBias = 0
         self.iteration = 0
 
-    def predict(self, inputs, applyActivation=True):
+    def predict(self, inputs, applyActivation=True, applyDropout=False):
         wKernel = weightedKernel(inputs, self.weights, self.step_size_rows, self.step_size_cols)
         biasSet = matrix.Matrix(dims=wKernel.size(), init=lambda: self.bias)
 
         out = matrix.add(wKernel, biasSet)
 
-        # For all of the layers this dropout layer should come after the activation perhaps?
-        droppedOut = dropout(out, self.dropout_rate)
-
         if (applyActivation):
             outCpy = out.clone()
             out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy))
 
-        return droppedOut
+        if (applyDropout):
+            out = dropout(out, self.dropout_rate)
+
+        return out
 
     def train(self, input_set, errors_raw, optimizer, predicted=None, applyActivation=True, learn_rate=0.1):
         self.iteration += 1
@@ -129,20 +129,23 @@ class ConvBlock:
             net = Conv2d(weights, bias, step_size_rows, step_size_cols, activation_func, dropout_rate=dropout_rate)
             self.convNets.append(net)
 
-    def predict(self, inputTensor):
+    def predict(self, inputTensor, applyDropout=False):
         if inputTensor.size()[2] != len(self.convNets): raise Exception(f"Tensor depths are not the same! Input depth: {inputTensor.size()[2]} | Kernel tensor depth: {len(self.convNets)}")
         inTensorsRaw = inputTensor.returnTensor()
 
         tensorRaw = []
         for matrix, net in zip(inTensorsRaw, self.convNets):
-            out = net.predict(matrix, applyActivation=False)
+            out = net.predict(matrix, applyActivation=False, applyDropout=False)
             tensorRaw.append(out)
 
-        outRaw = tensor.tensorSum(tensor.Tensor(tensorRaw))
-        outCpy = outRaw.clone()
-        outActivation = outRaw.applyFunc(lambda x: self.activation_func(x, vals=outCpy))
+        out = tensor.tensorSum(tensor.Tensor(tensorRaw))
+        outCpy = out.clone()
+        out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy))
+
+        if (applyDropout):
+            out = dropout(out, self.dropout_rate) 
     
-        return outActivation
+        return out
 
     def train(self, inputTensor, predicted, errors_raw, optimizer, learn_rate=0.1):
         errors = applyGradients(self.activation_func, errors_raw, predicted, self.dropout_rate).transpose()
@@ -154,10 +157,6 @@ class ConvBlock:
 
         return tensor.Tensor(backErrors)
 
-# Maybe I should just stick to a single convolutional block and skip the intermediary
-
-# How does the output shape affect the rest of the network, I need to do some sort of test convolution for this one
-# I also need to check where the activation function gets applied so we can take the derivatives properly
 class Conv:
     def __init__(self, weightsFilters, biasFilterTensor, step_size_rows, step_size_cols, activation_func, dropout_rate=0):
         if (weightsFilters.size()[-1] != biasFilterTensor.size()[-1]): raise Exception(f"Tensor numbers are not the same! Weights numbers: {weightsFilters.size()[-1]} | Bias numbers: {biasFilterTensor.size()[-1]}")
@@ -169,10 +168,10 @@ class Conv:
             cnnBlock = ConvBlock(weights, bias, step_size_rows, step_size_cols, activation_func, dropout_rate=dropout_rate)
             self.convNets.append(cnnBlock)
 
-    def predict(self, inputTensor):
+    def predict(self, inputTensor, training=False):
         outputs = []
         for net in self.convNets:
-            predictionMatrix = net.predict(inputTensor) 
+            predictionMatrix = net.predict(inputTensor, applyDropout=training) 
             outputs.append(predictionMatrix)
 
         return tensor.Tensor(outputs)

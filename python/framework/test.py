@@ -62,7 +62,10 @@ bias_set = matrix.Matrix(dims=[10, 1], init=lambda: misc.weightRandom())
 # Check the dropout rates for everything
 # Do a cleanup of the codebase and add more regularization and normalization functions
 # Need to put dropout after the activation function
-block = convolutional.Conv(weightsFilters, biasTensor, 1, 1, misc.relu, dropout_rate=0.1)
+
+# We also want a way to turn dropout off on a training layer THIS IS VERY IMPORTANT
+
+block = convolutional.Conv(weightsFilters, biasTensor, 1, 1, misc.relu, dropout_rate=0.2)
 poolLayer = convolutional.Pool(5, 5, 5, 5)
 flatten = convolutional.Flatten()
 fc = fullyconnected.FullyConnected(weight_set, bias_set, misc.softmax)
@@ -71,12 +74,12 @@ inp = data_set[0][0]
 inputs = tensor.Tensor([inp])
 training = data_set[0][1]
 
-for _ in range(20):
-    for dt in data_set[:10]:
+for _ in range(50):
+    for dt in data_set[:30]:
         inputs = tensor.Tensor([dt[0]])
         training = dt[1]
 
-        pred = block.predict(inputs)
+        pred = block.predict(inputs, training=True)
         pooled = poolLayer.pool(pred)
         flattened = flatten.flatten(pooled).transpose()
         predOut = fc.predict(flattened)
@@ -87,6 +90,12 @@ for _ in range(20):
         unPooled = poolLayer.reshapeErrors(pooledError)
         block.train(inputs, pred, unPooled, misc.adam)
 
+# What happened the softmax is not working now why? How did this happen? Its not even just the convolutional layer?
+
+pred = block.predict(inputs)
+pooled = poolLayer.pool(pred)
+flattened = flatten.flatten(pooled).transpose()
+predOut = fc.predict(flattened)
 predOut.transpose().print()
 training.print()
 

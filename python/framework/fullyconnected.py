@@ -14,17 +14,17 @@ class FullyConnected:
         self.rmsBias = matrix.Matrix(dims=bias_set.size(), init=lambda: 0)
         self.iteration = 0
 
-    def predict(self, inputs):
+    def predict(self, inputs, training=False):
         multiplied = matrix.multiplyMatrices(self.weights, inputs)
         out = matrix.add(multiplied, self.bias)
-
-        # We need to make it so that the dropout comes after the activation for all of the values anyway
-        droppedOut = dropout(out, self.dropout_rate)
 
         outCpy = out.clone()
         out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy)) 
 
-        return droppedOut
+        if (training):
+            out = dropout(out, self.dropout_rate)
+
+        return out
 
     def train(self, input_set, predicted, errors_raw, optimizer, learn_rate=0.1):
         self.iteration += 1

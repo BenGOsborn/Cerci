@@ -151,11 +151,15 @@ class Matrix:
 
         mat = self.returnMatrix()
 
+        retArray = []
         for y in range(rows_num):
+            tempArray = []
             for x in range(cols_num):
-                mat[y][x] = func(mat[y][x])
+                val = func(mat[y][x])
+                tempArray.append(val)
+            retArray.append(tempArray)
 
-        return Matrix(arr=mat)
+        return Matrix(arr=retArray)
 
     def rotate(self):
         rowsLen = self.size()[0] 
@@ -168,7 +172,7 @@ class Matrix:
         return Matrix(arr=new_mat)
 
     def returnMatrix(self):
-        return self.__matrix.copy()
+        return self.__matrix
 
     def size(self):
         return len(self.__matrix), len(self.__matrix[0])

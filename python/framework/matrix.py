@@ -124,7 +124,7 @@ class Matrix:
         return Matrix(arr=new_matrix)
 
     def clone(self):
-        return Matrix(arr=self.__matrix)
+        return Matrix(arr=self.returnMatrix())
 
     def pad(self, pad_up=0, pad_down=0, pad_left=0, pad_right=0, pad_val=lambda: 0):
         size = self.size()
@@ -143,6 +143,7 @@ class Matrix:
 
         return Matrix(arr=pad_init)
 
+    # This function is broken and edits the array or something which it is tied to and I dont want to go and put clone statements everywhere
     def applyFunc(self, func):
         size = self.size()
         rows_num = size[0]
@@ -152,7 +153,7 @@ class Matrix:
 
         for y in range(rows_num):
             for x in range(cols_num):
-                mat[y][x] = func(self.__matrix[y][x])
+                mat[y][x] = func(mat[y][x])
 
         return Matrix(arr=mat)
 
@@ -167,7 +168,7 @@ class Matrix:
         return Matrix(arr=new_mat)
 
     def returnMatrix(self):
-        return self.__matrix
+        return self.__matrix.copy()
 
     def size(self):
         return len(self.__matrix), len(self.__matrix[0])

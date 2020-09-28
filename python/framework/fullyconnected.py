@@ -18,15 +18,19 @@ class FullyConnected:
         multiplied = matrix.multiplyMatrices(self.weights, inputs)
         out = matrix.add(multiplied, self.bias)
 
-        if (not training):
-            print("BEFORE ACTIVATION")
-            out.print()
-            print("THIS MATTERS NOW")
-
         # Something is wrong with these predictions and its unclear why
         # The outcpy is changing on the fly what is going on here?
+        # This could mean the entire clone function is wrong but it shouldnt be what?
+
+        # So it is now clear to see that it is modifying the buffer directly
+
+        # This is going to make my runtime so much slower so fix it asap
         outCpy = out.clone()
+        print("PRE")
+        outCpy.transpose().print()
         out = out.applyFunc(lambda x: self.activation_func(x, vals=outCpy)) 
+        print("POST")
+        outCpy.transpose().print()
 
         if (training):
             out = dropout(out, self.dropout_rate)

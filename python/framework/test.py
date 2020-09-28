@@ -54,58 +54,71 @@ data_set = mnist_parser.loadData("python/framework/data.pickle")
 # c1.returnNetwork()[0].print()
 # print([c1.returnNetwork()[3]])
 
-weightsFilters = tensor.ConvFilter(5, 5, 1, 1)
-biasTensor = tensor.BiasConvTensor(1, 1)
-weight_set = matrix.Matrix(dims=[10, 16], init=lambda: misc.weightRandom())
-bias_set = matrix.Matrix(dims=[10, 1], init=lambda: misc.weightRandom())
+# ==============================================================================================
 
-# Check the dropout rates for everything
-# Do a cleanup of the codebase and add more regularization and normalization functions
-# Need to put dropout after the activation function
+# weightsFilters = tensor.ConvFilter(5, 5, 1, 1)
+# biasTensor = tensor.BiasConvTensor(1, 1)
+# weight_set = matrix.Matrix(dims=[10, 16], init=lambda: misc.weightRandom())
+# bias_set = matrix.Matrix(dims=[10, 1], init=lambda: misc.weightRandom())
 
-# We also want a way to turn dropout off on a training layer THIS IS VERY IMPORTANT
+# # Check the dropout rates for everything
+# # Do a cleanup of the codebase and add more regularization and normalization functions
+# # Need to put dropout after the activation function
 
-block = convolutional.Conv(weightsFilters, biasTensor, 1, 1, misc.relu, dropout_rate=0.25)
-poolLayer = convolutional.Pool(5, 5, 5, 5)
-flatten = convolutional.Flatten()
-fc = fullyconnected.FullyConnected(weight_set, bias_set, misc.softmax) # Something wrong with dropout for fully connected layers and softmax
+# # We also want a way to turn dropout off on a training layer THIS IS VERY IMPORTANT
 
-inp = data_set[0][0]
-inputs = tensor.Tensor([inp])
-training = data_set[0][1]
+# block = convolutional.Conv(weightsFilters, biasTensor, 1, 1, misc.relu, dropout_rate=0)
+# poolLayer = convolutional.Pool(5, 5, 5, 5)
+# flatten = convolutional.Flatten()
+# fc = fullyconnected.FullyConnected(weight_set, bias_set, misc.softmax) # Something wrong with dropout for fully connected layers and softmax
 
-for _ in range(20):
-    for dt in data_set[:20]:
-        inputs = tensor.Tensor([dt[0]])
-        training = dt[1]
+# inp = data_set[0][0]
+# inputs = tensor.Tensor([inp])
+# training = data_set[0][1]
 
-        # There is probably a problem with dropout
-        pred = block.predict(inputs, training=True)
-        pooled = poolLayer.pool(pred)
-        flattened = flatten.flatten(pooled).transpose()
-        predOut = fc.predict(flattened, training=True)
+# for _ in range(20):
+#     for dt in data_set[:20]:
+#         inputs = tensor.Tensor([dt[0]])
+#         training = dt[1]
 
-        predOutErr = misc.getDifferences(misc.crossEntropy, predOut, training)
-        hiddenFlat = fc.train(flattened, predOut, predOutErr, misc.adam)
-        pooledError = flatten.reshapeErrors(hiddenFlat.transpose())
-        unPooled = poolLayer.reshapeErrors(pooledError)
-        block.train(inputs, pred, unPooled, misc.adam)
+#         # There is probably a problem with dropout
+#         pred = block.predict(inputs, training=True)
+#         pooled = poolLayer.pool(pred)
+#         flattened = flatten.flatten(pooled).transpose()
+#         predOut = fc.predict(flattened, training=True)
+
+#         predOutErr = misc.getDifferences(misc.crossEntropy, predOut, training)
+#         hiddenFlat = fc.train(flattened, predOut, predOutErr, misc.adam)
+#         pooledError = flatten.reshapeErrors(hiddenFlat.transpose())
+#         unPooled = poolLayer.reshapeErrors(pooledError)
+#         block.train(inputs, pred, unPooled, misc.adam)
+
+# pred = block.predict(inputs, training=False)
+# pooled = poolLayer.pool(pred)
+# flattened = flatten.flatten(pooled).transpose()
+# predOut = fc.predict(flattened, training=False)
+# print("PREDICTED")
+# predOut.transpose().print()
+# print("TRAINING")
+# training.print()
 
 # What happened the softmax is not working now why? How did this happen? Its not even just the convolutional layer?
-
-pred = block.predict(inputs)
-pred.print()
-pooled = poolLayer.pool(pred)
-flattened = flatten.flatten(pooled).transpose()
-flattened.transpose().print()
 # Something wrong with the training part
 # The probabilities of the softmax returned dont add up to 1
-# 
-predOut = fc.predict(flattened)
-print("PREDICTED")
-predOut.transpose().print()
-print("TRAINING")
-training.print()
+# This is because the outCpy function is being changed on every iteration when it shouldnt be
+# And it only occurs when there is dropout
+# Could be something wrong with the training set to false or true in the conv block
 
 # The network is slow how am I going to be able to fix this?
 # I should include in the tensor class and the matrix class the ability to look at values in the matrix without having to return all of the time even though its in multiple dimensions
+
+matr = matrix.Matrix(dims=[1, 4], init=lambda: misc.weightRandom())
+
+matrCpy = matr.clone()
+print("MATCPY")
+matrCpy.print()
+
+matr.applyFunc(lambda x: x+1)
+
+print("POSTMATCPY")
+matrCpy.print()

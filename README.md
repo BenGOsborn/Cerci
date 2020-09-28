@@ -2,7 +2,7 @@
 
 ## :brain: An advanced AI designed to simulate human interaction 
 - CERCI, short for '**C**alculating **E**rror in **R**ealtime from **C**omputer **I**nteractions', is a custom made deep learning model aimed at simulating a human interaction
-- CERCI will be created using Python and C++
+- CERCI will be created using Python and CUDA
 
 ## :hourglass: Plans
 * Have CERCI be able to have a one on one conversation with a memory bank of previous interactions using recurrent neural networks

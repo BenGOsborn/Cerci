@@ -4,7 +4,7 @@
 // Is it completely necessary to make a brand new copy everytime we want to copy the matrix?
 // Could we just copy the values into the array instead?
 __global__
-void copyMatrix(int N, float readmatrix, float writeMatrix) {
+void copyMatrix(int N, float *readmatrix, float *writeMatrix) {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i < N) writeMatrix[i] = readMatrix[i];
 }
@@ -37,6 +37,11 @@ class Matrix {
 			cudaFree(wMatrix);
 
 			// Should I also destroy the input matrix here since its already created a copy of it?
+		}
+
+		~Matrix() {
+			free(matrix);
+			free(size);
 		}
 };
 

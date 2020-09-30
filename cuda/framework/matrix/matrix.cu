@@ -4,7 +4,7 @@
 // Is it completely necessary to make a brand new copy everytime we want to copy the matrix?
 // Could we just copy the values into the array instead?
 __global__
-void copyMatrix(int N, float *readmatrix, float *writeMatrix) {
+void copyMatrix(int N, float *readMatrix, float *writeMatrix) {
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 	if (i < N) writeMatrix[i] = readMatrix[i];
 }
@@ -23,20 +23,20 @@ class Matrix {
 			matrix = (float*)malloc(*size);
 
 			// Can I make use of the GPU to copy the values aswell?
-			float* rMatrix, * wMatrix;
-			cudaMalloc(&rMatrix, size);
-			cudaMalloc(&wMatrix, size);
-			cudaMemcpy(rMatrix, inShape, *size, cudaMemcpyHostToDevice);
-
-			// Now I just need to specify the block and the thread amounts somehow...?
-			copyMatrix <<< (*size + 255) / 256, 256 >>> (*size, rMatrix, wMatrix);
-			
-			cudaMemcpy(matrix, wMatrix, *size, cudaMemcpyDeviceToHost);
-
-			cudaFree(rMatrix);
-			cudaFree(wMatrix);
-
-			// Should I also destroy the input matrix here since its already created a copy of it?
+//			float *rMatrix, *wMatrix;
+//			cudaMalloc(&rMatrix, size);
+//			cudaMalloc(&wMatrix, size);
+//			cudaMemcpy(rMatrix, inShape, *size, cudaMemcpyHostToDevice);
+//
+//			// Now I just need to specify the block and the thread amounts somehow...?
+//			copyMatrix <<< (*size + 255) / 256, 256 >>> (*size, rMatrix, wMatrix);
+//			
+//			cudaMemcpy(matrix, wMatrix, *size, cudaMemcpyDeviceToHost);
+//
+//			cudaFree(rMatrix);
+//			cudaFree(wMatrix);
+//
+//			// Should I also destroy the input matrix here since its already created a copy of it?
 		}
 
 		~Matrix() {
@@ -47,5 +47,17 @@ class Matrix {
 
 int main() {
 
+	int* shape;
+	shape = (int*)malloc(2 * sizeof(int));
+	shape[0] = 5;
+	shape[1] = 2;
+
+	float* vals;
+	vals = (float*)malloc(10 * sizeof(float));
+	for (int i = 0; i < 10; i++) {
+		vals[i] = 1;
+	}
+
+	//Matrix* matrix = new Matrix(vals, shape);
 
 }

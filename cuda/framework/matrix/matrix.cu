@@ -13,7 +13,6 @@ class Matrix {
 	public:
 		// This shape and matrix being parsed seperaretly will probably have to be changed at some point in time or we can just keep it like this?
 		Matrix(float *inMatrix, unsigned int *inShape) {
-
 			shape = (unsigned int*)malloc(3 * sizeof(unsigned int));
 			memcpy(shape, inShape, 3 * sizeof(unsigned int));
 
@@ -100,7 +99,11 @@ class Matrix {
 		}
 
 		unsigned int* returnShape() {
-			return shape;
+			unsigned int* ret_shape;
+			ret_shape = (unsigned int*)malloc(2 * sizeof(unsigned int));
+			memcpy(ret_shape, shape, 2 * sizeof(unsigned int));
+
+			return ret_shape;
 		}
 
 		unsigned int returnSize() {
@@ -109,7 +112,7 @@ class Matrix {
 
 		~Matrix() {
 			free(matrix);
-			free(size);
+			delete size;
 			free(shape);
 		}
 };
@@ -121,8 +124,10 @@ void addMatricesD(int size, float* vector1, float *vector2, float *retVector) {
 }
 
 // For subtraction just multiply the array by 1 the add into a negative which can be done through the apply func
-Matrix* addMatrices(Matrix *matrix1, Matrix *matrix2) {
-	if (matrix1->returnShape() != matrix2->returnShape()) throw std::invalid_argument("Matrices are not of the same shape!");
+Matrix* addMatrices(Matrix* matrix1, Matrix* matrix2) {
+	unsigned int* mat1shape = matrix1->returnShape();
+	unsigned int* mat2shape = matrix2->returnShape();
+	if ((mat1shape[0] != mat2shape[0]) || (mat1shape[1] != mat2shape[1])) throw std::invalid_argument("Matrices are not of the same shape!");
 
 	unsigned int size = matrix1->returnSize();
 	int bytes = size * sizeof(float);
@@ -144,7 +149,7 @@ Matrix* addMatrices(Matrix *matrix1, Matrix *matrix2) {
 	int NUM_THREADS = 1 << 10;
 	int NUM_BLOCKS = (size + NUM_THREADS - 1) / NUM_THREADS;
 
-	addVectors <<< NUM_BLOCKS, NUM_THREADS >>> (size, mat1d, mat2d, mat3d);
+	addMatricesD << < NUM_BLOCKS, NUM_THREADS >> > (size, mat1d, mat2d, mat3d);
 
 	cudaMemcpy(mat3, mat3d, bytes, cudaMemcpyDeviceToHost);
 
@@ -163,35 +168,42 @@ Matrix* addMatrices(Matrix *matrix1, Matrix *matrix2) {
 	return ret_matrix;
 }
 
-__global__
-void multiplyMatricesD() {
-	
-}
-
-Matrix* multiplyMatrices(Matrix *matrix1, Matrix *matrix2) {
-	if (matrix1->returnShape()[1] != matrix2->returnShape()[0]) throw std::invalid_argument("Matrix dimensions are not aligned for multiplication!");
-
-	
-}
-
 int main() {
-	unsigned int* shape;
-	shape = (unsigned int*)malloc(2 * sizeof(unsigned int));
-	shape[0] = 5;
-	shape[1] = 2;
+	unsigned int* shape1;
+	shape1 = (unsigned int*)malloc(2 * sizeof(unsigned int));
+	shape1[0] = 5;
+	shape1[1] = 2;
 
-	float* vals;
-	vals = (float*)malloc(10 * sizeof(float));
+	float* vals1;
+	vals1 = (float*)malloc(10 * sizeof(float));
 	for (int i = 0; i < 10; i++) {
-		vals[i] = 1.0f;
+		vals1[i] = 1.0f;
 	}
+	Matrix* matrix1 = new Matrix(vals1, shape1);
 
-	Matrix* matrix = new Matrix(vals, shape);
-	Matrix* transposed = matrix->transpose();
-	transposed->print();
 
-	delete matrix;
-	delete transposed;
-	free(shape);
-	free(vals);
+	unsigned int* shape2;
+	shape2 = (unsigned int*)malloc(2 * sizeof(unsigned int));
+	shape2[0] = 5;
+	shape2[1] = 2;
+
+	float* vals2;
+	vals2 = (float*)malloc(10 * sizeof(float));
+	for (int i = 0; i < 10; i++) {
+		vals2[i] = 2.0f;
+	}
+	Matrix* matrix2 = new Matrix(vals2, shape2);
+	
+
+	Matrix* addedMatrix = addMatrices(matrix1, matrix2);
+	addedMatrix->print();
+
+
+	delete addedMatrix;
+	delete matrix1;
+	delete matrix2;
+	free(shape1);
+	free(vals1);
+	free(shape2);
+	free(vals2);
 }

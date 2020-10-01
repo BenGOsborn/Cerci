@@ -6,11 +6,12 @@
 
 /// Can I potentially turn this into a tensor class which supports both matrices and tensors in the same class?
 class Matrix {
-	public:
+	private:
 		float* matrix;
 		int* size;
 		int* shape;
 
+	public:
 		// This shape and matrix being parsed seperaretly will probably have to be changed at some point in time or we can just keep it like this?
 		Matrix(float *inMatrix, int *inShape) {
 			shape = (int*)malloc(2 * sizeof(int));
@@ -98,8 +99,12 @@ class Matrix {
 			return ret_matrix;
 		}
 
-		int* shape() {
+		int* returnShape() {
 			return shape;
+		}
+
+		int returnSize() {
+			return *size;
 		}
 
 		~Matrix() {
@@ -109,8 +114,53 @@ class Matrix {
 		}
 };
 
-int main() {
+__global__
+void addVectors(int size, float* vector1, float *vector2, float *retVector) {
+	int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i < size) retVector[i] = vector1[i] + vector2[i];
+}
 
+void addMatrices(Matrix *matrix1, Matrix *matrix2) {
+	if (matrix1->returnShape() != matrix2->returnShape()) throw std::invalid_argument("Matrices are not of the same shape!");
+
+	int* shape = matrix1->returnShape();
+	int size = matrix1->returnSize();
+	int bytes = size * sizeof(float);
+
+	float* mat1 = matrix1->returnMatrix();
+	float* mat2 = matrix2->returnMatrix();
+	float* mat3;
+	mat3 = (float*)malloc(bytes);
+
+	float* mat1d;
+	float* mat2d;
+	float* mat3d;
+	cudaMalloc(&mat1d, bytes);
+	cudaMalloc(&mat2d, bytes);
+	cudaMalloc(&mat3d, bytes);
+	cudaMemcpy(mat1d, mat1, bytes, cudaMemcpyHostToDevice);
+	cudaMemcpy(mat2d, mat2, bytes, cudaMemcpyHostToDevice);
+
+	int NUM_THREADS = 1 << 10;
+	int NUM_BLOCKS = (size + NUM_THREADS - 1) / NUM_THREADS;
+
+	addVectors <<< NUM_BLOCKS, NUM_THREADS >>> (size, mat1d, mat2d, mat3d);
+
+	cudaMemcpy(mat3, mat3d, bytes, cudaMemcpyDeviceToHost);
+
+	Matrix* ret_matrix = new Matrix(mat3, shape);
+
+	// What pointers are the ones that I need to free up here?
+	cudaFree(mat1d);
+	cudaFree(mat2d);
+	cudaFree(mat3d);
+	free(shape);
+	free(mat1);
+	free(mat2);
+	free(mat3);
+}
+
+int main() {
 	int* shape;
 	shape = (int*)malloc(2 * sizeof(int));
 	shape[0] = 5;

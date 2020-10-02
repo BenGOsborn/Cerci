@@ -1,20 +1,6 @@
 ﻿  Compiling CUDA source file matrix.cu...
   
-  C:\Users\Ben\Documents\Code\Cerci\cuda\framework\matrix>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static  -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\matrix.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\framework\matrix\matrix.cu" 
-C:/Users/Ben/Documents/Code/Cerci/cuda/framework/matrix/matrix.cu(7): error : attributes are not allowed here
-  
-C:/Users/Ben/Documents/Code/Cerci/cuda/framework/matrix/matrix.cu(86): warning : expression has no effect
-            detected during instantiation of "std::unique_ptr<Matrix, std::default_delete<Matrix>> Matrix::applyFunc(F) [with F=lambda [](float)->float]" 
-  (184): here
-  
-C:/Users/Ben/Documents/Code/Cerci/cuda/framework/matrix/matrix.cu(86): error : too few arguments in function call
-            detected during instantiation of "std::unique_ptr<Matrix, std::default_delete<Matrix>> Matrix::applyFunc(F) [with F=lambda [](float)->float]" 
-  (184): here
-  
-C:/Users/Ben/Documents/Code/Cerci/cuda/framework/matrix/matrix.cu(86): error : a host function call cannot be configured
-            detected during instantiation of "std::unique_ptr<Matrix, std::default_delete<Matrix>> Matrix::applyFunc(F) [with F=lambda [](float)->float]" 
-  (184): here
-  
-  3 errors detected in the compilation of "C:/Users/Ben/Documents/Code/Cerci/cuda/framework/matrix/matrix.cu".
+  C:\Users\Ben\Documents\Code\Cerci\cuda\framework\matrix>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static --extended-lambda -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\matrix.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\framework\matrix\matrix.cu" 
   matrix.cu
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\BuildCustomizations\CUDA 11.1.targets(785,9): error MSB3721: The command ""C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static  -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\matrix.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\framework\matrix\matrix.cu"" exited with code 1.
+     Creating library C:\Users\Ben\Documents\Code\Cerci\cuda\framework\matrix\x64\Debug\matrix.lib and object C:\Users\Ben\Documents\Code\Cerci\cuda\framework\matrix\x64\Debug\matrix.exp
+  matrix.vcxproj -> C:\Users\Ben\Documents\Code\Cerci\cuda\framework\matrix\x64\Debug\matrix.exe

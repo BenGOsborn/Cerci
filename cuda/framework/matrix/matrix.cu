@@ -4,138 +4,133 @@
 #include <iostream>
 #include <stdexcept>
 
+__global__ template <typename F>
+void applyFuncD(int size, float* inVector, F func) {
+	int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	if (idx < size) inVector[idx] = func(inVector[idx]);
+}
+
 class Matrix {
-	private:
-		float* matrix;
-		unsigned int* size;
-		unsigned int* shape;
+private:
+	std::unique_ptr<float[]> matrix;
+	std::unique_ptr<int> size;
+	std::unique_ptr<int[]> shape;
 
-	public:
-		// This shape and matrix being parsed seperaretly will probably have to be changed at some point in time or we can just keep it like this?
-		Matrix(float *inMatrix, unsigned int *inShape) {
-			shape = (unsigned int*)malloc(3 * sizeof(unsigned int));
-			memcpy(shape, inShape, 3 * sizeof(unsigned int));
+public:
+	Matrix(std::unique_ptr<float[]>& inMatrix, std::unique_ptr<int[]>& inShape) {
+		shape = std::make_unique<int[]>(2);
+		memcpy(shape.get(), inShape.get(), 2 * sizeof(int));
 
-			size = new unsigned int(shape[0]*shape[1]);
-			
-			matrix = (float*)malloc(*size * sizeof(float));
-			memcpy(matrix, inMatrix, *size * sizeof(float));
+		size = std::make_unique<int>(shape[0] * shape[1]);
+
+		matrix = std::make_unique<float[]>(*size);
+		memcpy(matrix.get(), inMatrix.get(), *size * sizeof(float));
+	}
+
+	void print() {
+		for (int i = 0; i < shape[0]; i++) {
+			for (int j = 0; j < shape[1]; j++) {
+				std::cout << matrix[i * shape[1] + j] << " ";
+			}
+			std::cout << "\n";
 		}
+	}
 
-		void print() {
-			for (int i = 0; i < shape[0]; i++) {
-				for (int j = 0; j < shape[1]; j++) {
-					std::cout << matrix[i*shape[1]+j] << " ";
-				}
-				std::cout << "\n";
+	std::unique_ptr<Matrix> reshape(int rows, int cols) {
+		if (rows * cols != *size) throw std::invalid_argument("New matrix size does not match original matrix size!");
+
+		std::unique_ptr<int[]> new_shape = std::make_unique<int[]>(2);
+		new_shape[0] = rows;
+		new_shape[1] = cols;
+
+		std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(matrix, new_shape);
+
+		return ret_matrix;
+	}
+
+	// This could be done in parallel on the GPU
+	std::unique_ptr<Matrix> transpose() {
+		std::unique_ptr<int[]> new_shape = std::make_unique<int[]>(2);
+		new_shape[0] = shape[1];
+		new_shape[1] = shape[0];
+
+		std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
+		for (int i = 0; i < shape[0]; i++) {
+			for (int j = 0; j < shape[1]; j++) {
+				new_matrix[j * new_shape[1] + i] = matrix[i * shape[1] + j];
 			}
 		}
 
-		Matrix* reshape(unsigned int rows, unsigned int cols) {
-			if (rows * cols != *size) throw std::invalid_argument("New matrix size does not match original matrix size!");
+		std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(new_matrix, new_shape);
+		return ret_matrix;
+	}
 
-			unsigned int* new_shape;
-			new_shape = (unsigned int*)malloc(2 * sizeof(unsigned int));
-			new_shape[0] = rows;
-			new_shape[1] = cols;
+	std::unique_ptr<Matrix> clone() {
+		std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(matrix, shape);
+		return ret_matrix;
+	}
 
-			Matrix* ret_matrix = new Matrix(matrix, new_shape);
+	// Functions like this can probably be done in parallel on the GPU
+	template <typename F>
+	std::unique_ptr<Matrix> applyFunc(F func) {
+		int bytes = *size * sizeof(float);
 
-			free(new_shape);
+		float* dCopy;
+		cudaMalloc(&dCopy, bytes);
+		cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
 
-			return ret_matrix;
-		}
+		int NUM_THREADS = 1 << 10;
+		int NUM_BLOCKS = (*size + NUM_THREADS - 1) / NUM_THREADS;
 
-		// This could be done in parallel on the GPU
-		Matrix* transpose() {
-			unsigned int* new_shape;
-			new_shape = (unsigned int*)malloc(2 * sizeof(unsigned int));	
-			new_shape[0] = shape[1];
-			new_shape[1] = shape[0];
+		// Probably cant copy over the host lambda function or can I?
+		applyFuncD <<< (NUM_BLOCKS, NUM_THREADS) >>> (*size, dCopy, func);
 
-			float* new_matrix;
-			new_matrix = (float*)malloc(*size * sizeof(float));
-			for (int i = 0; i < shape[0]; i++) {
-				for (int j = 0; j < shape[1]; j++) {
-					new_matrix[j * new_shape[1] + i] = matrix[i * shape[1] + j];
-				}
-			}
+		std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
+		cudaMemcpy(new_matrix.get(), dCopy, bytes, cudaMemcpyDeviceToHost);
 
-			Matrix* ret_matrix = new Matrix(new_matrix, new_shape);
-			
-			free(new_shape);
-			free(new_matrix);
+		std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(new_matrix, shape);
 
-			return ret_matrix;
-		}
+		cudaFree(dCopy);
 
-		Matrix* clone() {
-			Matrix* ret_matrix = new Matrix(matrix, shape);
-			return ret_matrix;
-		}
+		return ret_matrix;
+	}
 
-		// Functions like this can probably be done in parallel on the GPU
-		Matrix* applyFunc(float(*func)(float)) {
-			float* new_matrix;
-			new_matrix = (float*)malloc(*size * sizeof(float));
+	std::unique_ptr<float[]> returnMatrix() {
+		std::unique_ptr<float[]> ret_matrix = std::make_unique<float[]>(*size);
+		memcpy(ret_matrix.get(), matrix.get(), *size * sizeof(float));
 
-			for (int i = 0; i < *size; i++) {
-				new_matrix[i] = func(new_matrix[i]);
-			}
+		return ret_matrix;
+	}
 
-			Matrix* ret_matrix = new Matrix(new_matrix, shape);
+	std::unique_ptr<int[]> returnShape() {
+		std::unique_ptr<int[]> ret_shape = std::make_unique<int[]>(2);
+		memcpy(ret_shape.get(), shape.get(), 2 * sizeof(unsigned int));
+		return ret_shape;
+	}
 
-			free(new_matrix);
-
-			return ret_matrix;
-		}
-
-		float* returnMatrix() {
-			float* ret_matrix;
-			ret_matrix = (float*)malloc(*size * sizeof(float));
-			memcpy(ret_matrix, matrix, *size * sizeof(float));
-
-			return ret_matrix;
-		}
-
-		unsigned int* returnShape() {
-			unsigned int* ret_shape;
-			ret_shape = (unsigned int*)malloc(2 * sizeof(unsigned int));
-			memcpy(ret_shape, shape, 2 * sizeof(unsigned int));
-
-			return ret_shape;
-		}
-
-		unsigned int returnSize() {
-			return *size;
-		}
-
-		~Matrix() {
-			free(matrix);
-			delete size;
-			free(shape);
-		}
+	int returnSize() {
+		return *size;
+	}
 };
 
 __global__
-void addMatricesD(int size, float* vector1, float *vector2, float *retVector) {
+void addD(int size, float* vector1, float *vector2, float *retVector) {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	if (idx < size) retVector[idx] = vector1[idx] + vector2[idx];
 }
 
 // For subtraction just multiply the array by 1 the add into a negative which can be done through the apply func
-Matrix* addMatrices(Matrix* matrix1, Matrix* matrix2) {
-	unsigned int* mat1shape = matrix1->returnShape();
-	unsigned int* mat2shape = matrix2->returnShape();
+std::unique_ptr<Matrix> addMatrices(std::unique_ptr<Matrix> &matrix1, std::unique_ptr<Matrix> &matrix2) {
+	std::unique_ptr<int[]> mat1shape = matrix1->returnShape();
+	std::unique_ptr<int[]> mat2shape = matrix2->returnShape();
 	if ((mat1shape[0] != mat2shape[0]) || (mat1shape[1] != mat2shape[1])) throw std::invalid_argument("Matrices are not of the same shape!");
 
-	unsigned int size = matrix1->returnSize();
+	int size = matrix1->returnSize();
 	int bytes = size * sizeof(float);
 
-	float* mat1 = matrix1->returnMatrix();
-	float* mat2 = matrix2->returnMatrix();
-	float* mat3;
-	mat3 = (float*)malloc(bytes);
+	std::unique_ptr<float[]> mat1 = matrix1->returnMatrix();
+	std::unique_ptr<float[]> mat2 = matrix2->returnMatrix();
+	std::unique_ptr<float[]> mat3 = std::make_unique<float[]>(bytes);
 
 	float* mat1d;
 	float* mat2d;
@@ -143,67 +138,49 @@ Matrix* addMatrices(Matrix* matrix1, Matrix* matrix2) {
 	cudaMalloc(&mat1d, bytes);
 	cudaMalloc(&mat2d, bytes);
 	cudaMalloc(&mat3d, bytes);
-	cudaMemcpy(mat1d, mat1, bytes, cudaMemcpyHostToDevice);
-	cudaMemcpy(mat2d, mat2, bytes, cudaMemcpyHostToDevice);
+	cudaMemcpy(mat1d, mat1.get(), bytes, cudaMemcpyHostToDevice);
+	cudaMemcpy(mat2d, mat2.get(), bytes, cudaMemcpyHostToDevice);
 
 	int NUM_THREADS = 1 << 10;
 	int NUM_BLOCKS = (size + NUM_THREADS - 1) / NUM_THREADS;
 
-	addMatricesD << < NUM_BLOCKS, NUM_THREADS >> > (size, mat1d, mat2d, mat3d);
+	addD <<< NUM_BLOCKS, NUM_THREADS >>> (size, mat1d, mat2d, mat3d);
 
-	cudaMemcpy(mat3, mat3d, bytes, cudaMemcpyDeviceToHost);
+	cudaMemcpy(mat3.get(), mat3d, bytes, cudaMemcpyDeviceToHost);
 
-	unsigned int* shape = matrix1->returnShape();
-	Matrix* ret_matrix = new Matrix(mat3, shape);
+	std::unique_ptr<int[]> shape = matrix1->returnShape();
+	std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(mat3, shape);
 
-	// What pointers are the ones that I need to free up here?
 	cudaFree(mat1d);
 	cudaFree(mat2d);
 	cudaFree(mat3d);
-	free(shape);
-	free(mat1);
-	free(mat2);
-	free(mat3);
 
 	return ret_matrix;
 }
 
 int main() {
-	unsigned int* shape1;
-	shape1 = (unsigned int*)malloc(2 * sizeof(unsigned int));
+	std::unique_ptr<int[]> shape1 = std::make_unique<int[]>(2);
 	shape1[0] = 5;
 	shape1[1] = 2;
-
-	float* vals1;
-	vals1 = (float*)malloc(10 * sizeof(float));
+	std::unique_ptr<float[]> vals1 = std::make_unique<float[]>(10);
 	for (int i = 0; i < 10; i++) {
 		vals1[i] = 1.0f;
 	}
-	Matrix* matrix1 = new Matrix(vals1, shape1);
+	std::unique_ptr<Matrix> matrix1 = std::make_unique<Matrix>(vals1, shape1);
 
-
-	unsigned int* shape2;
-	shape2 = (unsigned int*)malloc(2 * sizeof(unsigned int));
+	std::unique_ptr<int[]> shape2 = std::make_unique<int[]>(2);
 	shape2[0] = 5;
 	shape2[1] = 2;
-
-	float* vals2;
-	vals2 = (float*)malloc(10 * sizeof(float));
+	std::unique_ptr<float[]> vals2 = std::make_unique<float[]>(10);
 	for (int i = 0; i < 10; i++) {
-		vals2[i] = 2.0f;
+		vals2[i] = 1.0f;
 	}
-	Matrix* matrix2 = new Matrix(vals2, shape2);
-	
+	std::unique_ptr<Matrix> matrix2 = std::make_unique<Matrix>(vals2, shape2);
 
-	Matrix* addedMatrix = addMatrices(matrix1, matrix2);
-	addedMatrix->print();
+	std::unique_ptr<Matrix> added = addMatrices(matrix1, matrix2);
 
+	// I do not know what is wrong with my lambda function and I will have to declare it in some other sort of way
+	auto lambda = [=] __global__ (float x) { return -1 * x; };
+	std::unique_ptr<Matrix> funcApplied = added->applyFunc(lambda);
 
-	delete addedMatrix;
-	delete matrix1;
-	delete matrix2;
-	free(shape1);
-	free(vals1);
-	free(shape2);
-	free(vals2);
 }

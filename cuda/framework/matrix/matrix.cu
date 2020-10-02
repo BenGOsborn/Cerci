@@ -4,12 +4,12 @@
 #include <iostream>
 #include <stdexcept>
 
-// This is meant to be the function that applies the functions on the gpu except it doesnt work
-//__global__ template <typename F>
-//void applyFuncD(int size, float* inVector, F func) {
-//	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-//	if (idx < size) inVector[idx] = func(inVector[idx]);
-//}
+template <typename Lambda>
+__global__ 
+void applyD(int size, float* inVector, Lambda function) {
+	int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	if (idx < size) inVector[idx] = function(inVector[idx]);
+}
 
 class Matrix {
 private:
@@ -72,28 +72,28 @@ public:
 	}
 
 	// I cant run this on my GPU yet for some reason so it has to be done on the CPU I will get it working though
-//	template <typename F>
-//	std::unique_ptr<Matrix> applyFunc(F func) {
-//		int bytes = *size * sizeof(float);
-//
-//		float* dCopy;
-//		cudaMalloc(&dCopy, bytes);
-//		cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
-//
-//		int NUM_THREADS = 1 << 10;
-//		int NUM_BLOCKS = (*size + NUM_THREADS - 1) / NUM_THREADS;
-//
-//		applyFuncD <<< (NUM_BLOCKS, NUM_THREADS) >>> (*size, dCopy, func);
-//
-//		std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
-//		cudaMemcpy(new_matrix.get(), dCopy, bytes, cudaMemcpyDeviceToHost);
-//
-//		std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(new_matrix, shape);
-//
-//		cudaFree(dCopy);
-//
-//		return ret_matrix;
-//	}
+	template <typename Lambda>
+	std::unique_ptr<Matrix> apply(Lambda function) {
+		int bytes = *size * sizeof(float);
+
+		float* dCopy;
+		cudaMalloc(&dCopy, bytes);
+		cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
+
+		int NUM_THREADS = 1 << 10;
+		int NUM_BLOCKS = (*size + NUM_THREADS - 1) / NUM_THREADS;
+
+		applyD <<< NUM_BLOCKS, NUM_THREADS >>> (*size, dCopy, function);
+
+		std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
+		cudaMemcpy(new_matrix.get(), dCopy, bytes, cudaMemcpyDeviceToHost);
+
+		std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(new_matrix, shape);
+
+		cudaFree(dCopy);
+
+		return ret_matrix;
+	}
 
 	std::unique_ptr<float[]> returnMatrix() {
 		std::unique_ptr<float[]> ret_matrix = std::make_unique<float[]>(*size);
@@ -158,13 +158,6 @@ std::unique_ptr<Matrix> addMatrices(std::unique_ptr<Matrix> &matrix1, std::uniqu
 	return ret_matrix;
 }
 
-template <typename Lambda>
-__global__ 
-void apply(int size, Lambda func, float* toApply) {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	if (idx < size) toApply[idx] = func(toApply[idx]);
-}
-
 int main() {
 	std::unique_ptr<int[]> shape1 = std::make_unique<int[]>(2);
 	shape1[0] = 5;
@@ -186,17 +179,7 @@ int main() {
 
 	std::unique_ptr<Matrix> added = addMatrices(matrix1, matrix2);
 
-
-	float* memCpy;
-	cudaMalloc(&memCpy, 10 * sizeof(float));
-	cudaMemcpy(memCpy, added.get(), 10*sizeof(float), cudaMemcpyHostToDevice);
-
 	auto makeNegative = [=] __host__ __device__(float x) { return -1 * x; };
-
-	apply <<< (10 + 256 - 1)/256, 256 >>> (10, makeNegative, memCpy);
-
-	std::unique_ptr<float[]> copyPtr = std::make_unique<float[]>(10);
-	cudaMemcpy(copyPtr.get(), memCpy, 10*sizeof(float), cudaMemcpyDeviceToHost);
-
-	cudaFree(memCpy);
+	std::unique_ptr<Matrix> negative = added->apply(makeNegative);
+	negative->print();
 }

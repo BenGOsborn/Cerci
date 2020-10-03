@@ -1,0 +1,2 @@
+C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.exe
+C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.pdb

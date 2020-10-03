@@ -4,16 +4,25 @@
     <Filter Include="matrix">
       <UniqueIdentifier>{12656366-1cec-4705-b9db-5a32f2b30500}</UniqueIdentifier>
     </Filter>
+    <Filter Include="fullyconnected">
+      <UniqueIdentifier>{4b4bbd0b-9020-46cd-959f-6eb0703e9a3d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="matrix.cu">
       <Filter>matrix</Filter>
     </CudaCompile>
     <CudaCompile Include="test.cu" />
+    <CudaCompile Include="fullyconnected.cu">
+      <Filter>fullyconnected</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="matrix.cuh">
       <Filter>matrix</Filter>
+    </ClInclude>
+    <ClInclude Include="fullyconnected.cuh">
+      <Filter>fullyconnected</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -11,10 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="fullyconnected.cu" />
     <CudaCompile Include="matrix.cu" />
     <CudaCompile Include="test.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="fullyconnected.cuh" />
     <ClInclude Include="matrix.cuh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

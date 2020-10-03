@@ -5,19 +5,21 @@
 #include <stdexcept>
 
 int NUM_THREADS = 1 << 10;
+int NUM_THREADS_BLOCK = 1 << 5;
 
 template <typename Lambda>
 __global__ 
 void applyD(int size, float* inVector, Lambda function) {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	if (idx < size) inVector[idx] = function(inVector[idx]);
+	int index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index < size) inVector[index] = function(inVector[index]);
 }
 
+// Do I have to add multiple thread blocks here too?
 __global__
 void transposeD(int rows, int cols, float* inVector) {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int idy = blockIdx.y * blockDim.y + threadIdx.y;
-	if ((idy < rows) && (idx < cols)) inVector[idx * cols + idy] = inVector[idy * rows + idx];
+	int row = blockIdx.x * blockDim.x + threadIdx.x;
+	int col = blockIdx.y * blockDim.y + threadIdx.y;
+	if ((row < rows) && (col < cols)) inVector[col * cols + row] = inVector[row * rows + col];
 }
 
 class Matrix {
@@ -25,9 +27,6 @@ private:
 	std::unique_ptr<float[]> matrix;
 	std::unique_ptr<int> size;
 	std::unique_ptr<int[]> shape;
-
-	// If I remove the macro then I should redefine the 'NUM_THREADS'
-	std::unique_ptr<int> NUM_BLOCKS;
 
 public:
 	Matrix(std::unique_ptr<float[]>& inMatrix, std::unique_ptr<int[]>& inShape) {
@@ -38,9 +37,6 @@ public:
 
 		matrix = std::make_unique<float[]>(*size);
 		memcpy(matrix.get(), inMatrix.get(), *size * sizeof(float));
-
-		// This constant 'NUM_THREADS' can be adjusted
-		NUM_BLOCKS = std::make_unique<int>((*size + NUM_THREADS - 1) / NUM_THREADS);
 	}
 
 	void print() {
@@ -76,7 +72,12 @@ public:
 		cudaMalloc(&dCopy, bytes);
 		cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
 
-		transposeD <<< *NUM_BLOCKS, NUM_THREADS >>> (shape[0], shape[1], dCopy);
+		int blockSizeCols = (shape[0] + NUM_THREADS - 1) / NUM_THREADS;
+		int blockSizeRows = (shape[1] + NUM_THREADS - 1) / NUM_THREADS;
+		dim3 THREADS(NUM_THREADS_BLOCK, NUM_THREADS_BLOCK);
+		dim3 BLOCKS(blockSizeCols, blockSizeRows);
+
+		transposeD <<< BLOCKS, THREADS >>> (shape[0], shape[1], dCopy);
 
 		std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
 		cudaMemcpy(new_matrix.get(), dCopy, bytes, cudaMemcpyDeviceToHost);
@@ -102,7 +103,7 @@ public:
 		cudaMalloc(&dCopy, bytes);
 		cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
 
-		applyD <<< *NUM_BLOCKS, NUM_THREADS >>> (*size, dCopy, function);
+		applyD <<< 1, NUM_THREADS >>> (*size, dCopy, function);
 
 		std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
 		cudaMemcpy(new_matrix.get(), dCopy, bytes, cudaMemcpyDeviceToHost);
@@ -159,9 +160,7 @@ std::unique_ptr<Matrix> add(std::unique_ptr<Matrix> &matrix1, std::unique_ptr<Ma
 	cudaMemcpy(mat1d, mat1.get(), bytes, cudaMemcpyHostToDevice);
 	cudaMemcpy(mat2d, mat2.get(), bytes, cudaMemcpyHostToDevice);
 
-	int NUM_BLOCKS = (size + NUM_THREADS - 1) / NUM_THREADS;
-
-	addD <<< NUM_BLOCKS, NUM_THREADS >>> (size, mat1d, mat2d, mat3d);
+	addD <<< 1, NUM_THREADS >>> (size, mat1d, mat2d, mat3d);
 
 	std::unique_ptr<float[]> mat3 = std::make_unique<float[]>(bytes);
 	cudaMemcpy(mat3.get(), mat3d, bytes, cudaMemcpyDeviceToHost);
@@ -178,16 +177,16 @@ std::unique_ptr<Matrix> add(std::unique_ptr<Matrix> &matrix1, std::unique_ptr<Ma
 
 __global__
 // What are the specifications required for matrix multiplication...?
-void multiplyD(int m, int n, int k, float* vector1, float* vector2, float* retVector) {
+void multiplyD(int rows, int same, int cols, float* vector1, float* vector2, float* retVector) {
 	int row = blockIdx.x * blockDim.x + threadIdx.x;
 	int col = blockIdx.y * blockDim.y + threadIdx.y;
 
-	if ((col < k) && (row < m)) {
+	if ((row < rows) && (col < cols)) {
 		float sum = 0;
-		for (int i = 0; i < n; i++) {
-			sum += vector1[row * n + i] * vector2[i * k + col];
+		for (int i = 0; i < same; i++) {
+			sum += vector1[row * same + i] * vector2[i * cols + col];
 		}
-		retVector[row * k + col] = sum;
+		retVector[row * cols + col] = sum;
 	}
 }
 
@@ -201,11 +200,9 @@ std::unique_ptr<Matrix> multiply(std::unique_ptr<Matrix> &matrix1, std::unique_p
 	new_shape[1] = mat2shape[1];
 	int same = mat1shape[1];
 
-	int new_size = new_shape[0] * new_shape[1];
-
 	int mat1bytes = matrix1->returnSize() * sizeof(float);
 	int mat2bytes = matrix2->returnSize() * sizeof(float);
-	int mat3bytes = new_size * sizeof(float);
+	int mat3bytes = new_shape[0] * new_shape[1] * sizeof(float);
 
 	float* mat1d;
 	float* mat2d;
@@ -219,10 +216,14 @@ std::unique_ptr<Matrix> multiply(std::unique_ptr<Matrix> &matrix1, std::unique_p
 	cudaMemcpy(mat1d, mat1.get(), mat1bytes, cudaMemcpyHostToDevice);
 	cudaMemcpy(mat2d, mat2.get(), mat2bytes, cudaMemcpyHostToDevice);
 
-	int NUM_BLOCKS = (new_size + NUM_THREADS - 1) / NUM_THREADS;
-	multiplyD <<< NUM_BLOCKS, NUM_THREADS >>> (new_shape[0], same, new_shape[1], mat1d, mat2d, mat3d);
+	int blockSizeCols = (new_shape[0] + NUM_THREADS - 1) / NUM_THREADS;
+	int blockSizeRows = (new_shape[1] + NUM_THREADS - 1) / NUM_THREADS;
+	dim3 THREADS(NUM_THREADS_BLOCK, NUM_THREADS_BLOCK);
+	dim3 BLOCKS(blockSizeCols, blockSizeRows);
 
-	std::unique_ptr<float[]> mat3 = std::make_unique<float[]>(new_size);
+	multiplyD <<< BLOCKS, THREADS >>> (new_shape[0], same, new_shape[1], mat1d, mat2d, mat3d);
+
+	std::unique_ptr<float[]> mat3 = std::make_unique<float[]>(new_shape[0] * new_shape[1]);
 	cudaMemcpy(mat3.get(), mat3d, mat3bytes, cudaMemcpyDeviceToHost);
 
 	std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(mat3, new_shape);
@@ -238,8 +239,8 @@ std::unique_ptr<Matrix> multiply(std::unique_ptr<Matrix> &matrix1, std::unique_p
 
 int main() {
 	std::unique_ptr<int[]> shape1 = std::make_unique<int[]>(2);
-	shape1[0] = 2;
-	shape1[1] = 2;
+	shape1[0] = 5;
+	shape1[1] = 10;
 	std::unique_ptr<float[]> vals1 = std::make_unique<float[]>(10);
 	for (int i = 0; i < 10; i++) {
 		vals1[i] = 2.0f;
@@ -247,14 +248,18 @@ int main() {
 	std::unique_ptr<Matrix> matrix1 = std::make_unique<Matrix>(vals1, shape1);
 
 	std::unique_ptr<int[]> shape2 = std::make_unique<int[]>(2);
-	shape2[0] = 2;
-	shape2[1] = 2;
+	shape2[0] = 10;
+	shape2[1] = 4;
 	std::unique_ptr<float[]> vals2 = std::make_unique<float[]>(10);
 	for (int i = 0; i < 10; i++) {
 		vals2[i] = 3.0f;
 	}
 	std::unique_ptr<Matrix> matrix2 = std::make_unique<Matrix>(vals2, shape2);
 
-	std::unique_ptr<Matrix> multiplied = multiply(matrix1, matrix2);
-	multiplied->print();
+	// This error means there must be something wrong with our memory allocation for the block count or possibly the row/col allocation
+	std::unique_ptr<Matrix> transposed = matrix2->transpose();
+	transposed->print();
+
+//	std::unique_ptr<Matrix> multiplied = multiply(matrix1, matrix2);
+//	multiplied->print();
 }

@@ -1,4 +1,4 @@
-#include "matrix.cuh"
+#include "fullyconnected.cuh"
 
 int main() {
 	std::unique_ptr<Matrix> mat = genRand(3, 4);

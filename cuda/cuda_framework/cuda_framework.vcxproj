@@ -12,6 +12,10 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="matrix.cu" />
+    <CudaCompile Include="test.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="matrix.cuh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BAAC0E30-2A28-492E-B5C6-683E19E02A24}</ProjectGuid>

@@ -3,9 +3,10 @@
 #include <string.h>
 #include <iostream>
 #include <stdexcept>
+#include <cstdlib>
 
-int NUM_THREADS = 1 << 10;
-int NUM_THREADS_BLOCK = 1 << 5;
+int THREAD_SIZE = 1 << 10;
+int BLOCK_SIZE = 1 << 5;
 
 template <typename Lambda>
 __global__ 
@@ -17,9 +18,9 @@ void applyD(int size, float* inVector, Lambda function) {
 // Do I have to add multiple thread blocks here too?
 __global__
 void transposeD(int rows, int cols, float* inVector) {
-	int row = blockIdx.x * blockDim.x + threadIdx.x;
-	int col = blockIdx.y * blockDim.y + threadIdx.y;
-	if ((row < rows) && (col < cols)) inVector[col * cols + row] = inVector[row * rows + col];
+	int row = blockIdx.y * blockDim.y + threadIdx.y;
+	int col = blockIdx.x * blockDim.x + threadIdx.x;
+	if ((row < rows) && (col < cols)) inVector[col * rows + row] = inVector[row * cols + col];
 }
 
 class Matrix {
@@ -72,12 +73,12 @@ public:
 		cudaMalloc(&dCopy, bytes);
 		cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
 
-		int blockSizeCols = (shape[0] + NUM_THREADS - 1) / NUM_THREADS;
-		int blockSizeRows = (shape[1] + NUM_THREADS - 1) / NUM_THREADS;
-		dim3 THREADS(NUM_THREADS_BLOCK, NUM_THREADS_BLOCK);
-		dim3 BLOCKS(blockSizeCols, blockSizeRows);
+		int grid_rows = (shape[0] + BLOCK_SIZE - 1) / BLOCK_SIZE;
+		int grid_cols = (shape[1] + BLOCK_SIZE - 1) / BLOCK_SIZE;
+		dim3 dimGrid(grid_cols, grid_rows);
+		dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
 
-		transposeD <<< BLOCKS, THREADS >>> (shape[0], shape[1], dCopy);
+		transposeD <<< dimGrid, dimBlock >>> (shape[0], shape[1], dCopy);
 
 		std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
 		cudaMemcpy(new_matrix.get(), dCopy, bytes, cudaMemcpyDeviceToHost);
@@ -103,7 +104,8 @@ public:
 		cudaMalloc(&dCopy, bytes);
 		cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
 
-		applyD <<< 1, NUM_THREADS >>> (*size, dCopy, function);
+		int dimGridX = (*size + THREAD_SIZE - 1) / THREAD_SIZE;
+		applyD <<< dimGridX, THREAD_SIZE >>> (*size, dCopy, function);
 
 		std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
 		cudaMemcpy(new_matrix.get(), dCopy, bytes, cudaMemcpyDeviceToHost);
@@ -135,8 +137,8 @@ public:
 
 __global__
 void addD(int size, float* vector1, float *vector2, float *retVector) {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	if (idx < size) retVector[idx] = vector1[idx] + vector2[idx];
+	int index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index < size) retVector[index] = vector1[index] + vector2[index];
 }
 
 // For subtraction just multiply the array by 1 the add into a negative which can be done through the apply func
@@ -160,7 +162,8 @@ std::unique_ptr<Matrix> add(std::unique_ptr<Matrix> &matrix1, std::unique_ptr<Ma
 	cudaMemcpy(mat1d, mat1.get(), bytes, cudaMemcpyHostToDevice);
 	cudaMemcpy(mat2d, mat2.get(), bytes, cudaMemcpyHostToDevice);
 
-	addD <<< 1, NUM_THREADS >>> (size, mat1d, mat2d, mat3d);
+	int dimGridX = (size + THREAD_SIZE - 1) / THREAD_SIZE;
+	addD <<< dimGridX, THREAD_SIZE >>> (size, mat1d, mat2d, mat3d);
 
 	std::unique_ptr<float[]> mat3 = std::make_unique<float[]>(bytes);
 	cudaMemcpy(mat3.get(), mat3d, bytes, cudaMemcpyDeviceToHost);
@@ -178,8 +181,8 @@ std::unique_ptr<Matrix> add(std::unique_ptr<Matrix> &matrix1, std::unique_ptr<Ma
 __global__
 // What are the specifications required for matrix multiplication...?
 void multiplyD(int rows, int same, int cols, float* vector1, float* vector2, float* retVector) {
-	int row = blockIdx.x * blockDim.x + threadIdx.x;
-	int col = blockIdx.y * blockDim.y + threadIdx.y;
+	int row = blockIdx.y * blockDim.y + threadIdx.y;
+	int col = blockIdx.x * blockDim.x + threadIdx.x;
 
 	if ((row < rows) && (col < cols)) {
 		float sum = 0;
@@ -216,12 +219,12 @@ std::unique_ptr<Matrix> multiply(std::unique_ptr<Matrix> &matrix1, std::unique_p
 	cudaMemcpy(mat1d, mat1.get(), mat1bytes, cudaMemcpyHostToDevice);
 	cudaMemcpy(mat2d, mat2.get(), mat2bytes, cudaMemcpyHostToDevice);
 
-	int blockSizeCols = (new_shape[0] + NUM_THREADS - 1) / NUM_THREADS;
-	int blockSizeRows = (new_shape[1] + NUM_THREADS - 1) / NUM_THREADS;
-	dim3 THREADS(NUM_THREADS_BLOCK, NUM_THREADS_BLOCK);
-	dim3 BLOCKS(blockSizeCols, blockSizeRows);
+	int grid_rows = (new_shape[0] + BLOCK_SIZE - 1) / BLOCK_SIZE;
+	int grid_cols = (new_shape[1] + BLOCK_SIZE - 1) / BLOCK_SIZE;
+	dim3 dimGrid(grid_cols, grid_rows);
+	dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
 
-	multiplyD <<< BLOCKS, THREADS >>> (new_shape[0], same, new_shape[1], mat1d, mat2d, mat3d);
+	multiplyD <<< dimGrid, dimBlock >>> (new_shape[0], same, new_shape[1], mat1d, mat2d, mat3d);
 
 	std::unique_ptr<float[]> mat3 = std::make_unique<float[]>(new_shape[0] * new_shape[1]);
 	cudaMemcpy(mat3.get(), mat3d, mat3bytes, cudaMemcpyDeviceToHost);
@@ -236,30 +239,31 @@ std::unique_ptr<Matrix> multiply(std::unique_ptr<Matrix> &matrix1, std::unique_p
 }
 
 // Make some functions which can initialize matrices for us now
+std::unique_ptr<Matrix> genRand(int rows, int cols) {
+	std::unique_ptr<int[]> shape = std::make_unique<int[]>(2);
+	shape[0] = rows;
+	shape[1] = cols;
+	int size = rows * cols;
+
+	std::unique_ptr<float[]> vals = std::make_unique<float[]>(size);
+
+	float randVal = 0.0f;
+	for (int i = 0; i < size; i++) {
+		if (rand() % 10 > 5) {
+			randVal = 1.0*(std::rand() % 100) / 100;
+		}
+		else {
+			randVal = -1.0*(std::rand() % 100) / 100;
+		}
+		vals[i] = randVal;
+	}
+
+	std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(vals, shape);
+
+	return ret_matrix;
+}
 
 int main() {
-	std::unique_ptr<int[]> shape1 = std::make_unique<int[]>(2);
-	shape1[0] = 5;
-	shape1[1] = 10;
-	std::unique_ptr<float[]> vals1 = std::make_unique<float[]>(10);
-	for (int i = 0; i < 10; i++) {
-		vals1[i] = 2.0f;
-	}
-	std::unique_ptr<Matrix> matrix1 = std::make_unique<Matrix>(vals1, shape1);
-
-	std::unique_ptr<int[]> shape2 = std::make_unique<int[]>(2);
-	shape2[0] = 10;
-	shape2[1] = 4;
-	std::unique_ptr<float[]> vals2 = std::make_unique<float[]>(10);
-	for (int i = 0; i < 10; i++) {
-		vals2[i] = 3.0f;
-	}
-	std::unique_ptr<Matrix> matrix2 = std::make_unique<Matrix>(vals2, shape2);
-
-	// This error means there must be something wrong with our memory allocation for the block count or possibly the row/col allocation
-	std::unique_ptr<Matrix> transposed = matrix2->transpose();
-	transposed->print();
-
-//	std::unique_ptr<Matrix> multiplied = multiply(matrix1, matrix2);
-//	multiplied->print();
+	std::unique_ptr<Matrix> mat1 = genRand(4, 6);
+	mat1->print();
 }

@@ -1,8 +1,6 @@
 #include "matrix.cuh"
 
-// Should these be defined inside of the header files?
-int THREAD_SIZE = 1 << 10;
-int BLOCK_SIZE = 1 << 5;
+Constants constants;
 
 Matrix::Matrix(std::unique_ptr<float[]>& inMatrix, std::unique_ptr<int[]>& inShape) {
 	Matrix::shape = std::make_unique<int[]>(2);
@@ -53,10 +51,10 @@ std::unique_ptr<Matrix> Matrix::transpose() {
 	cudaMalloc(&dCopy, bytes);
 	cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
 
-	int grid_rows = (shape[0] + BLOCK_SIZE - 1) / BLOCK_SIZE;
-	int grid_cols = (shape[1] + BLOCK_SIZE - 1) / BLOCK_SIZE;
+	int grid_rows = (shape[0] + constants.BLOCK_SIZE - 1) / constants.BLOCK_SIZE;
+	int grid_cols = (shape[1] + constants.BLOCK_SIZE - 1) / constants.BLOCK_SIZE;
 	dim3 dimGrid(grid_cols, grid_rows);
-	dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+	dim3 dimBlock(constants.BLOCK_SIZE, constants.BLOCK_SIZE);
 
 	transposeD <<< dimGrid, dimBlock >>> (shape[0], shape[1], dCopy);
 
@@ -90,8 +88,11 @@ std::unique_ptr<Matrix> Matrix::apply(Lambda function) {
 	cudaMalloc(&dCopy, bytes);
 	cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
 
-	int dimGridX = (*size + THREAD_SIZE - 1) / THREAD_SIZE;
-	applyD << < dimGridX, THREAD_SIZE >> > (*size, dCopy, function);
+	int dimGridX = (*size + constants.THREAD_SIZE - 1) / constants.THREAD_SIZE;
+
+	auto deviceFunc = [=] __host__ __device__ (float x) { return function(x); };
+
+	applyD <<< dimGridX, constants.THREAD_SIZE >>> (*size, dCopy, function);
 
 	std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
 	cudaMemcpy(new_matrix.get(), dCopy, bytes, cudaMemcpyDeviceToHost);
@@ -146,8 +147,8 @@ std::unique_ptr<Matrix> add(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Ma
 	cudaMemcpy(mat1d, mat1.get(), bytes, cudaMemcpyHostToDevice);
 	cudaMemcpy(mat2d, mat2.get(), bytes, cudaMemcpyHostToDevice);
 
-	int dimGridX = (size + THREAD_SIZE - 1) / THREAD_SIZE;
-	addD << < dimGridX, THREAD_SIZE >> > (size, mat1d, mat2d, mat3d);
+	int dimGridX = (size + constants.THREAD_SIZE - 1) / constants.THREAD_SIZE;
+	addD << < dimGridX, constants.THREAD_SIZE >> > (size, mat1d, mat2d, mat3d);
 
 	std::unique_ptr<float[]> mat3 = std::make_unique<float[]>(bytes);
 	cudaMemcpy(mat3.get(), mat3d, bytes, cudaMemcpyDeviceToHost);
@@ -202,10 +203,10 @@ std::unique_ptr<Matrix> multiply(std::unique_ptr<Matrix>& matrix1, std::unique_p
 	cudaMemcpy(mat1d, mat1.get(), mat1bytes, cudaMemcpyHostToDevice);
 	cudaMemcpy(mat2d, mat2.get(), mat2bytes, cudaMemcpyHostToDevice);
 
-	int grid_rows = (new_shape[0] + BLOCK_SIZE - 1) / BLOCK_SIZE;
-	int grid_cols = (new_shape[1] + BLOCK_SIZE - 1) / BLOCK_SIZE;
+	int grid_rows = (new_shape[0] + constants.BLOCK_SIZE - 1) / constants.BLOCK_SIZE;
+	int grid_cols = (new_shape[1] + constants.BLOCK_SIZE - 1) / constants.BLOCK_SIZE;
 	dim3 dimGrid(grid_cols, grid_rows);
-	dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
+	dim3 dimBlock(constants.BLOCK_SIZE, constants.BLOCK_SIZE);
 
 	multiplyD <<< dimGrid, dimBlock >>> (new_shape[0], same, new_shape[1], mat1d, mat2d, mat3d);
 

@@ -21,7 +21,8 @@ public:
 	void print();
 	std::unique_ptr<Matrix> reshape(int rows, int cols);
 	std::unique_ptr<Matrix> transpose();
-	std::unique_ptr<Matrix> apply(float(*function)(float));
+	template <typename Lambda>
+	std::unique_ptr<Matrix> apply(Lambda function);
 	std::unique_ptr<Matrix> clone();
 	std::unique_ptr<float[]> returnMatrix();
 	std::unique_ptr<int[]> returnShape();

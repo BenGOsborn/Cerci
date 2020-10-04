@@ -74,20 +74,18 @@ void applyD(int size, float* inVector, Lambda function) {
 	if (index < size) inVector[index] = function(inVector[index]);
 }
 
-std::unique_ptr<Matrix> Matrix::apply(float(*function)(float)) {
+// I might just have to write this down as a template and then have the ability to parse in arguments as I want oooo that could be a good idea
+template <typename Lambda>
+std::unique_ptr<Matrix> Matrix::apply(Lambda function) {
 	int bytes = *size * sizeof(float);
 
 	float* dCopy;
 	cudaMalloc(&dCopy, bytes);
 	cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
 
-	// This memory allocation is weird
-	auto f = [=] __host__ __device__ (float x) { return function(x); };
-	auto lambda = [=] __device__ (float x) { return f(x); };
-
 	Constants constants;
 	int dimGridX = (*size + constants.THREAD_SIZE - 1) / constants.THREAD_SIZE;
-	applyD <<< dimGridX, constants.THREAD_SIZE >>> (*size, dCopy, lambda);
+	applyD <<< dimGridX, constants.THREAD_SIZE >>> (*size, dCopy, function);
 
 	std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
 	cudaMemcpy(new_matrix.get(), dCopy, bytes, cudaMemcpyDeviceToHost);

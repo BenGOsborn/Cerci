@@ -6,6 +6,7 @@ std::unique_ptr<Matrix> apply(std::unique_ptr<Matrix>& in_matrix, Lambda functio
 std::unique_ptr<Matrix> add(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
 std::unique_ptr<Matrix> multiply(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
 std::unique_ptr<Matrix> genRand(int rows, int cols);
+float sum(std::unique_ptr<Matrix>& matrix);
 
 template <typename Lambda>
 __global__
@@ -14,6 +15,7 @@ void applyD(int size, float* inVector, Lambda function) {
 	if (index < size) inVector[index] = function(inVector[index]);
 }
 
+// Might want to consider moving this in as part of the matrix class itself
 template <typename Lambda>
 std::unique_ptr<Matrix> apply(std::unique_ptr<Matrix>& in_matrix, Lambda function) {
 	std::unique_ptr<float[]> matrix = in_matrix->returnMatrix();

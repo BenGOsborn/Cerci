@@ -128,3 +128,15 @@ std::unique_ptr<Matrix> genRand(int rows, int cols) {
 
 	return ret_matrix;
 }
+
+float sum(std::unique_ptr<Matrix>& matrix) {
+	std::unique_ptr<float[]> returned_matrix = matrix->returnMatrix();
+	int size = matrix->returnSize();
+
+	float sm = 0;
+	for (int i = 0; i < size; i++) {
+		sm += returned_matrix[i];
+	}
+
+	return sm;
+}

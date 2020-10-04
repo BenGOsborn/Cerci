@@ -1,7 +1,5 @@
 #include "matrix.cuh"
 
-Constants constants;
-
 Matrix::Matrix(std::unique_ptr<float[]>& inMatrix, std::unique_ptr<int[]>& inShape) {
 	Matrix::shape = std::make_unique<int[]>(2);
 	memcpy(shape.get(), inShape.get(), 2 * sizeof(int));
@@ -51,6 +49,7 @@ std::unique_ptr<Matrix> Matrix::transpose() {
 	cudaMalloc(&dCopy, bytes);
 	cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
 
+	Constants constants;
 	int grid_rows = (shape[0] + constants.BLOCK_SIZE - 1) / constants.BLOCK_SIZE;
 	int grid_cols = (shape[1] + constants.BLOCK_SIZE - 1) / constants.BLOCK_SIZE;
 	dim3 dimGrid(grid_cols, grid_rows);
@@ -68,11 +67,6 @@ std::unique_ptr<Matrix> Matrix::transpose() {
 	return ret_matrix;
 }
 
-std::unique_ptr<Matrix> Matrix::clone() {
-	std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(matrix, shape);
-	return ret_matrix;
-}
-
 template <typename Lambda>
 __global__
 void applyD(int size, float* inVector, Lambda function) {
@@ -80,19 +74,20 @@ void applyD(int size, float* inVector, Lambda function) {
 	if (index < size) inVector[index] = function(inVector[index]);
 }
 
-template <typename Lambda>
-std::unique_ptr<Matrix> Matrix::apply(Lambda function) {
+std::unique_ptr<Matrix> Matrix::apply(float(*function)(float)) {
 	int bytes = *size * sizeof(float);
 
 	float* dCopy;
 	cudaMalloc(&dCopy, bytes);
 	cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
 
+	// This memory allocation is weird
+	auto f = [=] __host__ __device__ (float x) { return function(x); };
+	auto lambda = [=] __device__ (float x) { return f(x); };
+
+	Constants constants;
 	int dimGridX = (*size + constants.THREAD_SIZE - 1) / constants.THREAD_SIZE;
-
-	auto deviceFunc = [=] __host__ __device__ (float x) { return function(x); };
-
-	applyD <<< dimGridX, constants.THREAD_SIZE >>> (*size, dCopy, function);
+	applyD <<< dimGridX, constants.THREAD_SIZE >>> (*size, dCopy, lambda);
 
 	std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
 	cudaMemcpy(new_matrix.get(), dCopy, bytes, cudaMemcpyDeviceToHost);
@@ -101,6 +96,11 @@ std::unique_ptr<Matrix> Matrix::apply(Lambda function) {
 
 	cudaFree(dCopy);
 
+	return ret_matrix;
+}
+
+std::unique_ptr<Matrix> Matrix::clone() {
+	std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(matrix, shape);
 	return ret_matrix;
 }
 
@@ -147,8 +147,9 @@ std::unique_ptr<Matrix> add(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Ma
 	cudaMemcpy(mat1d, mat1.get(), bytes, cudaMemcpyHostToDevice);
 	cudaMemcpy(mat2d, mat2.get(), bytes, cudaMemcpyHostToDevice);
 
+	Constants constants;
 	int dimGridX = (size + constants.THREAD_SIZE - 1) / constants.THREAD_SIZE;
-	addD << < dimGridX, constants.THREAD_SIZE >> > (size, mat1d, mat2d, mat3d);
+	addD <<< dimGridX, constants.THREAD_SIZE >>> (size, mat1d, mat2d, mat3d);
 
 	std::unique_ptr<float[]> mat3 = std::make_unique<float[]>(bytes);
 	cudaMemcpy(mat3.get(), mat3d, bytes, cudaMemcpyDeviceToHost);
@@ -203,6 +204,7 @@ std::unique_ptr<Matrix> multiply(std::unique_ptr<Matrix>& matrix1, std::unique_p
 	cudaMemcpy(mat1d, mat1.get(), mat1bytes, cudaMemcpyHostToDevice);
 	cudaMemcpy(mat2d, mat2.get(), mat2bytes, cudaMemcpyHostToDevice);
 
+	Constants constants;
 	int grid_rows = (new_shape[0] + constants.BLOCK_SIZE - 1) / constants.BLOCK_SIZE;
 	int grid_cols = (new_shape[1] + constants.BLOCK_SIZE - 1) / constants.BLOCK_SIZE;
 	dim3 dimGrid(grid_cols, grid_rows);

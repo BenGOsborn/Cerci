@@ -1,23 +1,12 @@
-﻿  Compiling CUDA source file matrix.cu...
-  Compiling CUDA source file test.cu...
-  Compiling CUDA source file fullyconnected.cu...
+﻿  Compiling CUDA source file test.cu...
+  Compiling CUDA source file matrix.cu...
   
-  C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static --extended-lambda -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\matrix.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu" 
   
   C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static --extended-lambda -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\test.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\test.cu" 
-  
-  C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static --extended-lambda -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\fullyconnected.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\fullyconnected.cu" 
+  C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static --extended-lambda -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\matrix.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu" 
   test.cu
   matrix.cu
-  fullyconnected.cu
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cuh(23): warning C5046: 'Matrix::apply': Symbol involving type with internal linkage not defined
-C:/Users/Ben/Documents/Code/Cerci/cuda/cuda_framework/matrix.cu(234): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:/Users/Ben/Documents/Code/Cerci/cuda/cuda_framework/matrix.cu(237): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-  LINK : C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.exe not found or not built by the last incremental link; performing full link
-matrix.cu.obj : error LNK2005: "int THREAD_SIZE" (?THREAD_SIZE@@3HA) already defined in fullyconnected.cu.obj
-matrix.cu.obj : error LNK2005: "int BLOCK_SIZE" (?BLOCK_SIZE@@3HA) already defined in fullyconnected.cu.obj
-test.cu.obj : error LNK2005: "int THREAD_SIZE" (?THREAD_SIZE@@3HA) already defined in fullyconnected.cu.obj
-test.cu.obj : error LNK2005: "int BLOCK_SIZE" (?BLOCK_SIZE@@3HA) already defined in fullyconnected.cu.obj
+C:/Users/Ben/Documents/Code/Cerci/cuda/cuda_framework/matrix.cu(239): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:/Users/Ben/Documents/Code/Cerci/cuda/cuda_framework/matrix.cu(242): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
      Creating library C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.lib and object C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.exp
-test.cu.obj : error LNK2019: unresolved external symbol "public: class std::unique_ptr<class Matrix,struct std::default_delete<class Matrix> > __cdecl Matrix::apply<class <lambda_8b7b19e8fe1fa44b8f00cff6d1c1e7ac> >(class <lambda_8b7b19e8fe1fa44b8f00cff6d1c1e7ac>)" (??$apply@V<lambda_8b7b19e8fe1fa44b8f00cff6d1c1e7ac>@@@Matrix@@QEAA?AV?$unique_ptr@VMatrix@@U?$default_delete@VMatrix@@@std@@@std@@V<lambda_8b7b19e8fe1fa44b8f00cff6d1c1e7ac>@@@Z) referenced in function main
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.exe : fatal error LNK1120: 1 unresolved externals
+  cuda_framework.vcxproj -> C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.exe

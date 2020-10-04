@@ -1,11 +1,14 @@
 #pragma once
 // Clean these up eventually
+// Change variable name type (underscores)
+
 #include <cuda_runtime.h>
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
 #include <stdexcept>
 
+// Maybe get rid of this and replace it with a define statement is that possible ?
 struct GPUParams {
 	int THREAD_SIZE = 1 << 10;
 	int BLOCK_SIZE = 1 << 5;

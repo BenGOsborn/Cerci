@@ -1,50 +1,7 @@
-﻿  Compiling CUDA source file fullyconnected.cu...
-  Compiling CUDA source file matrix.cu...
-  Compiling CUDA source file test.cu...
-  
-  C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static --extended-lambda -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\fullyconnected.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\fullyconnected.cu" 
-  
-  C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static --extended-lambda -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\matrix.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu" 
+﻿  Compiling CUDA source file test.cu...
   
   C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static --extended-lambda -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\test.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\test.cu" 
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(3): error : function "Matrix::Matrix(std::unique_ptr<float [], std::default_delete<float []>> &, std::unique_ptr<int [], std::default_delete<int []>> &)" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(13): error : function "Matrix::print" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(22): error : function "Matrix::reshape" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(35): error : function "transposeD" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(41): error : function "Matrix::transpose" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(72): error : function template "applyD" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(79): error : function template "Matrix::apply" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(100): error : function "Matrix::clone" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(105): error : function "Matrix::returnMatrix" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(112): error : function "Matrix::returnShape" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(118): error : function "Matrix::returnSize" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(123): error : function "addD" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(128): error : function "add" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(166): error : function "multiplyD" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(179): error : function "multiply" has already been defined
-  
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(225): error : function "genRand" has already been defined
-  
-  16 errors detected in the compilation of "C:/Users/Ben/Documents/Code/Cerci/cuda/cuda_framework/matrix.cu".
-  matrix.cu
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\BuildCustomizations\CUDA 11.1.targets(785,9): error MSB3721: The command ""C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static --extended-lambda -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\matrix.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu"" exited with code 1.
-  fullyconnected.cu
   test.cu
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(236): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(239): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(236): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cu(239): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+     Creating library C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.lib and object C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.exp
+test.cu.obj : error LNK2019: unresolved external symbol "??$apply@U?$__nv_hdl_wrapper_t@$0A@$00U?$__nv_dl_tag@P6AHXZ$1main$00@@$$A6AMM@Z$$V@@@@YA?AV?$unique_ptr@VMatrix@@U?$default_delete@VMatrix@@@std@@@std@@AEAV01@U?$__nv_hdl_wrapper_t@$0A@$00U?$__nv_dl_tag@P6AHXZ$1main$00@@$$A6AMM@Z$$V@@@Z" (??$apply@U?$__nv_hdl_wrapper_t@$0A@$00U?$__nv_dl_tag@P6AHXZ$1main$00@@$$A6AMM@Z$$V@@@@YA?AV?$unique_ptr@VMatrix@@U?$default_delete@VMatrix@@@std@@@std@@AEAV01@U?$__nv_hdl_wrapper_t@$0A@$00U?$__nv_dl_tag@P6AHXZ$1main$00@@$$A6AMM@Z$$V@@@Z) referenced in function main
+C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.exe : fatal error LNK1120: 1 unresolved externals

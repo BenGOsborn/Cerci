@@ -7,9 +7,6 @@
     <Filter Include="fullyconnected">
       <UniqueIdentifier>{4b4bbd0b-9020-46cd-959f-6eb0703e9a3d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="activationfunctions">
-      <UniqueIdentifier>{defce6ee-071d-466f-8f53-dd416285120c}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="matrix.cu">
@@ -19,8 +16,8 @@
     <CudaCompile Include="fullyconnected.cu">
       <Filter>fullyconnected</Filter>
     </CudaCompile>
-    <CudaCompile Include="activationfunctions.cu">
-      <Filter>activationfunctions</Filter>
+    <CudaCompile Include="matrixfunctions.cu">
+      <Filter>matrix</Filter>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
@@ -30,8 +27,8 @@
     <ClInclude Include="fullyconnected.cuh">
       <Filter>fullyconnected</Filter>
     </ClInclude>
-    <ClInclude Include="activationfunctions.cuh">
-      <Filter>activationfunctions</Filter>
+    <ClInclude Include="matrixfunctions.cuh">
+      <Filter>matrix</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

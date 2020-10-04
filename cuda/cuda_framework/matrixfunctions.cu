@@ -9,20 +9,26 @@ void applyD(int size, float* inVector, Lambda function) {
 	if (index < size) inVector[index] = function(inVector[index]);
 }
 
-// This might have to be made into some sort of macro eventually
+// Baically we want some sort of macro which is going to take in the matrix and copy the stuff and then we are going to extract the stuff from it
+
+// What if instead of returning a matrix we create a seperate function which copies the memory address to some sort of location and then we can access this memory address andput the value into whatever we want
 template <typename Lambda>
 std::unique_ptr<Matrix> apply(std::unique_ptr<Matrix>& in_matrix, Lambda function) {
-	int bytes = *size * sizeof(float);
+	std::unique_ptr<float[]> matrix = in_matrix->returnMatrix();
+	int size = in_matrix->returnSize();
+	std::unique_ptr<int[]> shape = in_matrix->returnShape();
+
+	int bytes = size * sizeof(float);
 
 	float* dCopy;
 	cudaMalloc(&dCopy, bytes);
 	cudaMemcpy(dCopy, matrix.get(), bytes, cudaMemcpyHostToDevice);
 
 	GPUParams gpu;
-	int dimGridX = (*size + gpu.THREAD_SIZE - 1) / gpu.THREAD_SIZE;
-	applyD <<< dimGridX, gpu.THREAD_SIZE >>> (*size, dCopy, function);
+	int dimGridX = (size + gpu.THREAD_SIZE - 1) / gpu.THREAD_SIZE;
+	applyD <<< dimGridX, gpu.THREAD_SIZE >>> (size, dCopy, function);
 
-	std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(*size);
+	std::unique_ptr<float[]> new_matrix = std::make_unique<float[]>(size);
 	cudaMemcpy(new_matrix.get(), dCopy, bytes, cudaMemcpyDeviceToHost);
 
 	std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(new_matrix, shape);

@@ -11,12 +11,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="activationfunctions.cu" />
     <CudaCompile Include="fullyconnected.cu" />
     <CudaCompile Include="matrix.cu" />
     <CudaCompile Include="matrixfunctions.cu" />
     <CudaCompile Include="test.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="activationfunctions.cuh" />
     <ClInclude Include="fullyconnected.cuh" />
     <ClInclude Include="matrix.cuh" />
     <ClInclude Include="matrixfunctions.cuh" />

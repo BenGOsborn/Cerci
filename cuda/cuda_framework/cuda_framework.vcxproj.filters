@@ -10,6 +10,9 @@
     <Filter Include="activationfunctions">
       <UniqueIdentifier>{3fe5a2b4-ae6b-4a76-a31e-fe238af740e3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="lossfunctions">
+      <UniqueIdentifier>{886d3b87-29ea-4b19-a069-289eae85f28d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="matrix.cu">
@@ -25,6 +28,9 @@
     <CudaCompile Include="activationfunctions.cu">
       <Filter>activationfunctions</Filter>
     </CudaCompile>
+    <CudaCompile Include="lossfunctions.cu">
+      <Filter>lossfunctions</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="matrix.cuh">
@@ -38,6 +44,9 @@
     </ClInclude>
     <ClInclude Include="activationfunctions.cuh">
       <Filter>activationfunctions</Filter>
+    </ClInclude>
+    <ClInclude Include="lossfunctions.cuh">
+      <Filter>lossfunctions</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

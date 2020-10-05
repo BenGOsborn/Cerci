@@ -19,7 +19,7 @@ std::unique_ptr<Matrix> FullyConnected::predict(std::unique_ptr<Matrix>& inputs)
 }
 
 std::unique_ptr<Matrix> FullyConnected::train(std::unique_ptr<Matrix>& inputs, std::unique_ptr<Matrix>& predicted, std::unique_ptr<Matrix>& errors_raw) {
-
+	// The errors that come into this are from the loss function
 }
 
 std::unique_ptr<Network> FullyConnected::returnNetwork() {

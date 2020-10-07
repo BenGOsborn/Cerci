@@ -13,6 +13,9 @@
     <Filter Include="lossfunctions">
       <UniqueIdentifier>{886d3b87-29ea-4b19-a069-289eae85f28d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="optimizers">
+      <UniqueIdentifier>{c96a1235-a838-443e-ad45-3760939ddfa7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="matrix.cu">
@@ -31,6 +34,9 @@
     <CudaCompile Include="lossfunctions.cu">
       <Filter>lossfunctions</Filter>
     </CudaCompile>
+    <CudaCompile Include="optimizers.cu">
+      <Filter>optimizers</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="matrix.cuh">
@@ -47,6 +53,9 @@
     </ClInclude>
     <ClInclude Include="lossfunctions.cuh">
       <Filter>lossfunctions</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizers.cuh">
+      <Filter>optimizers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

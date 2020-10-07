@@ -16,6 +16,7 @@
     <CudaCompile Include="lossfunctions.cu" />
     <CudaCompile Include="matrix.cu" />
     <CudaCompile Include="matrixfunctions.cu" />
+    <CudaCompile Include="optimizers.cu" />
     <CudaCompile Include="test.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -24,6 +25,7 @@
     <ClInclude Include="lossfunctions.cuh" />
     <ClInclude Include="matrix.cuh" />
     <ClInclude Include="matrixfunctions.cuh" />
+    <ClInclude Include="optimizers.cuh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BAAC0E30-2A28-492E-B5C6-683E19E02A24}</ProjectGuid>

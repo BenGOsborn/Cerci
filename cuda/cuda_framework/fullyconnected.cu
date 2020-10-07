@@ -17,16 +17,16 @@ std::unique_ptr<Matrix> FullyConnected::train(std::unique_ptr<Matrix>& inputs, s
 	std::unique_ptr<Matrix> inputs_transposed = inputs->transpose();
 	std::unique_ptr<Matrix> weight_adjustments = multiply(errors, inputs_transposed);
 
+	std::unique_ptr<Matrix> weights_transposed = FullyConnected::weights->transpose();
+	std::unique_ptr<Matrix> back_errors_raw = multiply(errors, weights_transposed);
+
 	std::unique_ptr<Matrix> weights_lr = multiplyScalar(weight_adjustments, FullyConnected::learning_rate);
 	std::unique_ptr<Matrix> bias_lr = multiplyScalar(errors, FullyConnected::learning_rate);
 
 	FullyConnected::weights = subtract(FullyConnected::weights, weights_lr);
 	FullyConnected::bias = subtract(FullyConnected::bias, bias_lr);
 
-	std::unique_ptr<Matrix> weights_transposed = FullyConnected::weights->transpose();
-	std::unique_ptr<Matrix> back_errors = multiply(errors, weights_transposed);
-
-	return back_errors;
+	return back_errors_raw;
 }
 
 // This function should only ever be used for deepQlearning where two models are required

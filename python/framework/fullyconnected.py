@@ -42,6 +42,7 @@ class FullyConnected:
         b_Adjustments = matrix.multiplyScalar(errors, learn_rate)
         self.bias = matrix.subtract(self.bias, b_Adjustments)
 
+        # I wonder if this is actually meant to be here or not because this will be after the weights update ... ?
         transposeWeights = self.weights.transpose()
         h_Error = matrix.multiplyMatrices(transposeWeights, errors)
 

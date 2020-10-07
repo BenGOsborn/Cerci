@@ -3,8 +3,26 @@
 #include "matrixfunctions.cuh"
 #include <math.h>
 
-// I have to make sure that CUDA will work with the math.h function
-std::unique_ptr<Matrix> applySigmoid(std::unique_ptr<Matrix>& matrix, bool deriv = false);
-std::unique_ptr<Matrix> applyLRelu(std::unique_ptr<Matrix>& matrix, bool deriv = false);
-std::unique_ptr<Matrix> applySoftmax(std::unique_ptr<Matrix>& matrix, bool deriv = false);
-std::unique_ptr<Matrix> applyTanh(std::unique_ptr<Matrix>& matrix, bool deriv = false);
+class Sigmoid {
+	Sigmoid();
+	std::unique_ptr<Matrix> forwardProp(std::unique_ptr<Matrix>& predictions);
+	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& sigmoid, std::unique_ptr<Matrix>& errors);
+};
+
+class LRelu {
+	LRelu();
+	std::unique_ptr<Matrix> forwardProp(std::unique_ptr<Matrix>& predictions);
+	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& lrelu, std::unique_ptr<Matrix>& errors);
+};
+
+class Softmax {
+	Softmax();
+	std::unique_ptr<Matrix> forwardProp(std::unique_ptr<Matrix>& predictions);
+	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& softmax, std::unique_ptr<Matrix>& errors);
+};
+
+class Tanh {
+	Tanh();
+	std::unique_ptr<Matrix> forwardProp(std::unique_ptr<Matrix>& predictions);
+	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& tanh, std::unique_ptr<Matrix>& errors);
+};

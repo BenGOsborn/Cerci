@@ -148,7 +148,7 @@ void multiplyAllD(int size, float* vector1, float* vector2, float* retVector) {
 	if (index < size) retVector[index] = vector1[index] * vector2[index];
 }
 
-std::unique_ptr<Matrix> multiplyAll(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2) {
+std::unique_ptr<Matrix> multiplyElementwise(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2) {
 	std::unique_ptr<int[]> shape1 = matrix1->returnShape();
 	std::unique_ptr<int[]> shape2 = matrix2->returnShape();
 	if ((shape1[0] != shape2[0]) || (shape1[1] != shape2[1])) throw std::invalid_argument("Dimensions of matrices are not the same!");
@@ -192,7 +192,7 @@ void divideAllD(int size, float* vector1, float* vector2, float* retVector) {
 	if (index < size) retVector[index] = vector1[index] / vector2[index];
 }
 
-std::unique_ptr<Matrix> divideAll(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2) {
+std::unique_ptr<Matrix> divideElementwise(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2) {
 	std::unique_ptr<int[]> shape1 = matrix1->returnShape();
 	std::unique_ptr<int[]> shape2 = matrix2->returnShape();
 	if ((shape1[0] != shape2[0]) || (shape1[1] != shape2[1])) throw std::invalid_argument("Dimensions of matrices are not the same!");

@@ -7,8 +7,8 @@ std::unique_ptr<Matrix> add(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Ma
 std::unique_ptr<Matrix> multiply(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
 std::unique_ptr<Matrix> genRand(int rows, int cols);
 float sum(std::unique_ptr<Matrix>& matrix);
-std::unique_ptr<Matrix> multiplyAll(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
-std::unique_ptr<Matrix> divideAll(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
+std::unique_ptr<Matrix> multiplyElementwise(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
+std::unique_ptr<Matrix> divideElementwise(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
 std::unique_ptr<Matrix> subtract(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
 std::unique_ptr<Matrix> multiplyScalar(std::unique_ptr<Matrix>& matrix, float val);
 

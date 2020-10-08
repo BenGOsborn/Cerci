@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="activationfunctions.cu" />
+    <CudaCompile Include="dropout.cu" />
     <CudaCompile Include="fullyconnected.cu" />
     <CudaCompile Include="lossfunctions.cu" />
     <CudaCompile Include="matrix.cu" />
@@ -21,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="activationfunctions.cuh" />
+    <ClInclude Include="dropout.cuh" />
     <ClInclude Include="fullyconnected.cuh" />
     <ClInclude Include="lossfunctions.cuh" />
     <ClInclude Include="matrix.cuh" />

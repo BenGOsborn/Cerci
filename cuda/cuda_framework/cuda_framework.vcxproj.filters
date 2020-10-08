@@ -16,6 +16,9 @@
     <Filter Include="optimizers">
       <UniqueIdentifier>{c96a1235-a838-443e-ad45-3760939ddfa7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="dropout">
+      <UniqueIdentifier>{0f87fae3-ca0e-4fe4-9b88-9a21b4cfefee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="matrix.cu">
@@ -37,6 +40,9 @@
     <CudaCompile Include="optimizers.cu">
       <Filter>optimizers</Filter>
     </CudaCompile>
+    <CudaCompile Include="dropout.cu">
+      <Filter>dropout</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="matrix.cuh">
@@ -56,6 +62,9 @@
     </ClInclude>
     <ClInclude Include="optimizers.cuh">
       <Filter>optimizers</Filter>
+    </ClInclude>
+    <ClInclude Include="dropout.cuh">
+      <Filter>dropout</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

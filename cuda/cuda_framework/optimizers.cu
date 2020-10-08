@@ -42,7 +42,7 @@ FullyConnectedAdam::FullyConnectedAdam(std::unique_ptr<Matrix>& weight_set, std:
 	FullyConnectedAdam::iteration = 0;
 }
 
-std::unique_ptr<Matrix> train(std::unique_ptr<Matrix>& inputs, std::unique_ptr<Matrix>& errors) {
+std::unique_ptr<Matrix> FullyConnectedAdam::train(std::unique_ptr<Matrix>& inputs, std::unique_ptr<Matrix>& errors) {
 	FullyConnectedAdam::iteration += 1;
 
 	std::unique_ptr<Matrix> inputs_transposed = inputs->transpose();
@@ -56,8 +56,8 @@ std::unique_ptr<Matrix> train(std::unique_ptr<Matrix>& inputs, std::unique_ptr<M
 	// We probably want to do some sort of error checking here before setting the new weights as this value
 	FullyConnectedAdam::p_weights = applyMomentum(FullyConnectedAdam::p_weights, FullyConnectedAdam::beta1, weight_adjustments);
 	FullyConnectedAdam::p_bias = applyMomentum(FullyConnectedAdam::p_bias, FullyConnectedAdam::beta1, errors);
-	FullyConnected::rms_weights = applyRMS(FullyConnectedAdam::rms_weights, FullyConnectedAdam::beta2, weight_adjustments);
-	FullyConnected::rms_bias = applyRMS(FullyConnectedAdam::rms_bias, FullyConnectedAdam::beta2, errors);
+	FullyConnectedAdam::rms_weights = applyRMS(FullyConnectedAdam::rms_weights, FullyConnectedAdam::beta2, weight_adjustments);
+	FullyConnectedAdam::rms_bias = applyRMS(FullyConnectedAdam::rms_bias, FullyConnectedAdam::beta2, errors);
 
 	std::unique_ptr<Matrix> p_weights_corrected = applyCorrection(FullyConnectedAdam::p_weights, FullyConnectedAdam::beta1, FullyConnectedAdam::iteration);
 	std::unique_ptr<Matrix> p_bias_corrected = applyCorrection(FullyConnectedAdam::p_bias, FullyConnectedAdam::beta1, FullyConnectedAdam::iteration);

@@ -6,11 +6,13 @@ std::unique_ptr<Matrix> apply(std::unique_ptr<Matrix>& in_matrix, Lambda functio
 std::unique_ptr<Matrix> add(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
 std::unique_ptr<Matrix> multiply(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
 std::unique_ptr<Matrix> genRand(int rows, int cols);
+std::unique_ptr<Matrix> genZeros(int rows, int cols);
 float sum(std::unique_ptr<Matrix>& matrix);
 std::unique_ptr<Matrix> multiplyElementwise(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
 std::unique_ptr<Matrix> divideElementwise(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
 std::unique_ptr<Matrix> subtract(std::unique_ptr<Matrix>& matrix1, std::unique_ptr<Matrix>& matrix2);
 std::unique_ptr<Matrix> multiplyScalar(std::unique_ptr<Matrix>& matrix, float val);
+std::unique_ptr<Matrix> divideScalar(std::unique_ptr<Matrix>& matrix, float val);
 
 template <typename Lambda>
 __global__

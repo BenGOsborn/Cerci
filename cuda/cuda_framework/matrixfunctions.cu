@@ -129,6 +129,22 @@ std::unique_ptr<Matrix> genRand(int rows, int cols) {
 	return ret_matrix;
 }
 
+std::unique_ptr<Matrix> genZeros(int rows, int cols) {
+	std::unique_ptr<int[]> shape = std::make_unique<int[]>(2);
+	shape[0] = rows;
+	shape[1] = cols;
+	int size = rows * cols;
+
+	std::unique_ptr<float[]> vals = std::make_unique<float[]>(size);
+	for (int i = 0; i < size; i++) {
+		vals[i] = 0.0f;
+	}
+
+	std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(vals, shape);
+
+	return ret_matrix;
+}
+
 float sum(std::unique_ptr<Matrix>& matrix) {
 	std::unique_ptr<float[]> returned_matrix = matrix->returnMatrix();
 	int size = matrix->returnSize();
@@ -243,4 +259,11 @@ std::unique_ptr<Matrix> multiplyScalar(std::unique_ptr<Matrix>& matrix, float va
 	std::unique_ptr<Matrix> multiplied = apply(matrix, do_multiply);
 
 	return multiplied;
+}
+
+std::unique_ptr<Matrix> divideScalar(std::unique_ptr<Matrix>& matrix, float val) {
+	auto do_multiply = [=] __host__ __device__(float x) { return x / val; };
+	std::unique_ptr<Matrix> divided = apply(matrix, do_multiply);
+
+	return divided;
 }

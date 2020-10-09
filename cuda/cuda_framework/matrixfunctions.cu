@@ -129,7 +129,7 @@ std::unique_ptr<Matrix> genRand(int rows, int cols) {
 	return ret_matrix;
 }
 
-std::unique_ptr<Matrix> genZeros(int rows, int cols) {
+std::unique_ptr<Matrix> genInit(int rows, int cols, float init_val) {
 	std::unique_ptr<int[]> shape = std::make_unique<int[]>(2);
 	shape[0] = rows;
 	shape[1] = cols;
@@ -137,7 +137,7 @@ std::unique_ptr<Matrix> genZeros(int rows, int cols) {
 
 	std::unique_ptr<float[]> vals = std::make_unique<float[]>(size);
 	for (int i = 0; i < size; i++) {
-		vals[i] = 0.0f;
+		vals[i] = init_val;
 	}
 
 	std::unique_ptr<Matrix> ret_matrix = std::make_unique<Matrix>(vals, shape);

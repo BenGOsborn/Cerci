@@ -10,11 +10,13 @@ std::unique_ptr<Matrix> FullyConnected::predict(std::unique_ptr<Matrix>& inputs)
 	std::unique_ptr<Matrix> multiplied = multiply(FullyConnected::weights, inputs);
 	std::unique_ptr<Matrix> out = add(multiplied, FullyConnected::bias);
 
+	FullyConnected::hidden_layer = inputs->clone();
+
 	return out;
 }
 
-std::unique_ptr<Matrix> FullyConnected::train(std::unique_ptr<Matrix>& inputs, std::unique_ptr<Matrix>& errors) {
-	std::unique_ptr<Matrix> inputs_transposed = inputs->transpose();
+std::unique_ptr<Matrix> FullyConnected::train(std::unique_ptr<Matrix>& errors) {
+	std::unique_ptr<Matrix> inputs_transposed = FullyConnected::hidden_layer->transpose();
 	std::unique_ptr<Matrix> weight_adjustments = multiply(errors, inputs_transposed);
 
 	std::unique_ptr<Matrix> weights_transposed = FullyConnected::weights->transpose();

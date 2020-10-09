@@ -19,13 +19,15 @@ std::unique_ptr<Matrix> Dropout::applyDropout(std::unique_ptr<Matrix>& predictio
 		}
 	}
 	std::unique_ptr<Matrix> dropout_mask = std::make_unique<Matrix>(vals, pred_shape);
-
+	// Is it needed to have all of these clones here?
+	Dropout::mask = dropout_mask->clone();
 	std::unique_ptr<Matrix> mask_applied = multiplyElementwise(predictions, dropout_mask);
 
 	return mask_applied;
 }
 
 std::unique_ptr<Matrix> Dropout::backErrors(std::unique_ptr<Matrix>& errors) {
-	// So what will the gradients be for this bad boy ?
-	// Is there anything else that I need to apply to this layer?
+	std::unique_ptr<Matrix> applied = multiplyElementwise(errors, Dropout::mask);
+	
+	return applied;
 }

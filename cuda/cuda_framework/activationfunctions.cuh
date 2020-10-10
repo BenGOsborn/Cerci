@@ -3,26 +3,35 @@
 #include "matrixfunctions.cuh"
 #include <math.h>
 
+// We want to store all of the values within the state of the network for backprop
 class Sigmoid {
-	Sigmoid();
+protected:
+	std::unique_ptr<Matrix> hidden_layer;
+public:
 	std::unique_ptr<Matrix> forwardProp(std::unique_ptr<Matrix>& predictions);
-	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& sigmoid, std::unique_ptr<Matrix>& errors);
+	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& errors);
 };
 
 class LRelu {
-	LRelu();
+protected:
+	std::unique_ptr<Matrix> hidden_layer;
+public:
 	std::unique_ptr<Matrix> forwardProp(std::unique_ptr<Matrix>& predictions);
-	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& lrelu, std::unique_ptr<Matrix>& errors);
+	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& errors);
 };
 
 class Softmax {
-	Softmax();
+protected:
+	std::unique_ptr<Matrix> hidden_layer;
+public:
 	std::unique_ptr<Matrix> forwardProp(std::unique_ptr<Matrix>& predictions);
-	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& softmax, std::unique_ptr<Matrix>& errors);
+	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& errors);
 };
 
 class Tanh {
-	Tanh();
+protected:
+	std::unique_ptr<Matrix> hidden_layer;
+public:
 	std::unique_ptr<Matrix> forwardProp(std::unique_ptr<Matrix>& predictions);
-	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& tanh, std::unique_ptr<Matrix>& errors);
+	std::unique_ptr<Matrix> backProp(std::unique_ptr<Matrix>& errors);
 };

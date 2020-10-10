@@ -1,6 +1,6 @@
 #include "dropout.cuh"
 
-Dropout::Dropout(float rate = 0.5) {
+Dropout::Dropout(float rate) {
 	if ((rate < 0) || (rate >= 1)) throw std::invalid_argument("Rate must be >= 0 and < 1!");
 	Dropout::dropout_rate = rate;
 }

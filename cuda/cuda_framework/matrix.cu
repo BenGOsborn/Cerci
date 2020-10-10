@@ -8,6 +8,8 @@ Matrix::Matrix(std::unique_ptr<float[]>& inMatrix, std::unique_ptr<int[]>& inSha
 
 	Matrix::matrix = std::make_unique<float[]>(*size);
 	memcpy(matrix.get(), inMatrix.get(), *size * sizeof(float));
+
+	Matrix::gpu = std::make_unique<GPUParams>();
 }
 
 void Matrix::print() {

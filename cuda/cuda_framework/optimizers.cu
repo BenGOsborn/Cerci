@@ -23,20 +23,15 @@ std::unique_ptr<Matrix> applyRMS(std::unique_ptr<Matrix>& p_adjustments, float b
 std::unique_ptr<Matrix> applyCorrection(std::unique_ptr<Matrix>& param, float beta, int iteration) {
 	float divide_param = 1 - pow(beta, iteration);
 	std::unique_ptr<Matrix> corrected = divideScalar(param, divide_param);
+
+	return corrected;
 }
 
-// I need a custom return type for this
-struct AdamReturn {
-public:
-	std::unique_ptr<Matrix> p;
-	std::unique_ptr<Matrix> rms;
-	std::unique_ptr<Matrix> adam;
-	AdamReturn(std::unique_ptr<Matrix>& p_new, std::unique_ptr<Matrix>& rms_new, std::unique_ptr<Matrix>& out_adam) {
-		p = p_new->clone();
-		rms = rms_new->clone();
-		adam = out_adam->clone();
-	}
-};
+AdamReturn::AdamReturn(std::unique_ptr<Matrix>& p_new, std::unique_ptr<Matrix>& rms_new, std::unique_ptr<Matrix>& out_adam) {
+	AdamReturn::p = p_new->clone();
+	AdamReturn::rms = rms_new->clone();
+	AdamReturn::adam = out_adam->clone();
+}
 
 std::unique_ptr<AdamReturn> applyAdam(std::unique_ptr<Matrix>& prev_p, std::unique_ptr<Matrix>& prev_rms, std::unique_ptr<Matrix>& gradients, float beta1, float beta2, float epsilon, int iteration, float learning_rate) {
 	std::unique_ptr<Matrix> applied_p = applyMomentum(prev_p, beta1, gradients);
@@ -55,7 +50,7 @@ std::unique_ptr<AdamReturn> applyAdam(std::unique_ptr<Matrix>& prev_p, std::uniq
 }
 
 // Make sure that this calls the constructor of the previous class too
-FullyConnectedAdam::FullyConnectedAdam(std::unique_ptr<Matrix>& weight_set, std::unique_ptr<Matrix>& bias_set, float lr = 0.1, float b1 = 0.9, float b2 = 0.999, float eps = 10e-8) : FullyConnected(weight_set, bias_set, lr) {
+FullyConnectedAdam::FullyConnectedAdam(std::unique_ptr<Matrix>& weight_set, std::unique_ptr<Matrix>& bias_set, float lr, float b1, float b2, float eps) : FullyConnected(weight_set, bias_set, lr) {
 	std::unique_ptr<int[]> weight_shape = weight_set->returnShape();
 	std::unique_ptr<int[]> bias_shape = bias_set->returnShape();
 

@@ -52,89 +52,88 @@ std::unique_ptr<Tensor> transpose(std::unique_ptr<Tensor>& tensor) {
 
 // Now I just have to add the extra functions and then go and modify everything based around these tensors and such
 
-//__global__
-//void addD(int size, float* vector1, float* vector2, float* retVector) {
-//	int index = blockIdx.x * blockDim.x + threadIdx.x;
-//	if (index < size) retVector[index] = vector1[index] + vector2[index];
-//}
-//
-//std::unique_ptr<Tensor> add(std::unique_ptr<Tensor>& tensor1, std::unique_ptr<Tensor>& tensor2) {
-//	std::unique_ptr<int[]> shape1 = tensor1->returnShape();
-//	std::unique_ptr<int[]> shape2 = tensor2->returnShape();
-//	if ((shape1[0] != shape2[0]) || (shape1[1] != shape2[1]) || (shape1[2] != shape2[2])) throw std::invalid_argument("Tensors are not of same shape!");
-//
-//	int size = tensor1->returnTensorSize();
-//	int bytes = size * sizeof(float);
-//
-//	std::unique_ptr<float[]> t1 = tensor1->returnTensor();
-//	std::unique_ptr<float[]> t2 = tensor2->returnTensor();
-//
-//	float* t1d;
-//	float* t2d;
-//	float* t3d;
-//	cudaMalloc(&t1d, bytes);
-//	cudaMalloc(&t2d, bytes);
-//	cudaMalloc(&t3d, bytes);
-//	cudaMemcpy(t1d, t1.get(), bytes, cudaMemcpyHostToDevice);
-//	cudaMemcpy(t2d, t2.get(), bytes, cudaMemcpyHostToDevice);
-//
-//	GPU gpu;
-//	int dimGridX = (size + gpu.THREAD_SIZE - 1) / gpu.THREAD_SIZE;
-//	addD <<< dimGridX, gpu.THREAD_SIZE >>> (size, t1d, t2d, t3d);
-//
-//	std::unique_ptr<float[]> t3(new float[size]);
-//	cudaMemcpy(t3.get(), t3d, bytes, cudaMemcpyDeviceToHost);
-//
-//	std::unique_ptr<int[]> shape = tensor1->returnShape();
-//	std::unique_ptr<Tensor> ret_matrix(new Tensor(t3, shape));
-//
-//	cudaFree(t1d);
-//	cudaFree(t2d);
-//	cudaFree(t3d);
-//
-//	return ret_matrix;
-//}
-//
-//__global__
-//void subtractD(int size, float* vector1, float* vector2, float* retVector) {
-//	int index = blockIdx.x * blockDim.x + threadIdx.x;
-//	if (index < size) retVector[index] = vector1[index] - vector2[index];
-//}
-//
-//std::unique_ptr<Tensor> subtract(std::unique_ptr<Tensor>& tensor1, std::unique_ptr<Tensor>& tensor2) {
-//	std::unique_ptr<int[]> shape1 = tensor1->returnShape();
-//	std::unique_ptr<int[]> shape2 = tensor2->returnShape();
-//	if ((shape1[0] != shape2[0]) || (shape1[1] != shape2[1]) || (shape1[2] != shape2[2])) throw std::invalid_argument("Tensors are not of same shape!");
-//
-//	int size = tensor1->returnTensorSize();
-//	int bytes = size * sizeof(float);
-//
-//	std::unique_ptr<float[]> t1 = tensor1->returnTensor();
-//	std::unique_ptr<float[]> t2 = tensor2->returnTensor();
-//
-//	float* t1d;
-//	float* t2d;
-//	float* t3d;
-//	cudaMalloc(&t1d, bytes);
-//	cudaMalloc(&t2d, bytes);
-//	cudaMalloc(&t3d, bytes);
-//	cudaMemcpy(t1d, t1.get(), bytes, cudaMemcpyHostToDevice);
-//	cudaMemcpy(t2d, t2.get(), bytes, cudaMemcpyHostToDevice);
-//
-//	GPU gpu;
-//	int dimGridX = (size + gpu.THREAD_SIZE - 1) / gpu.THREAD_SIZE;
-//	subtractD <<< dimGridX, gpu.THREAD_SIZE >>> (size, t1d, t2d, t3d);
-//
-//	std::unique_ptr<float[]> t3(new float[size]);
-//	cudaMemcpy(t3.get(), t3d, bytes, cudaMemcpyDeviceToHost);
-//
-//	std::unique_ptr<int[]> shape = tensor1->returnShape();
-//	std::unique_ptr<Tensor> ret_matrix(new Tensor(t3, shape));
-//
-//	cudaFree(t1d);
-//	cudaFree(t2d);
-//	cudaFree(t3d);
-//
-//	return ret_matrix;
-//}
-//
+__global__
+void addD(int size, float* vector1, float* vector2, float* retVector) {
+	int index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index < size) retVector[index] = vector1[index] + vector2[index];
+}
+
+std::unique_ptr<Tensor> add(std::unique_ptr<Tensor>& tensor1, std::unique_ptr<Tensor>& tensor2) {
+	std::unique_ptr<int[]> shape1 = tensor1->returnShape();
+	std::unique_ptr<int[]> shape2 = tensor2->returnShape();
+	if ((shape1[0] != shape2[0]) || (shape1[1] != shape2[1]) || (shape1[2] != shape2[2])) throw std::invalid_argument("Tensors are not of same shape!");
+
+	int size = tensor1->returnTensorSize();
+	int bytes = size * sizeof(float);
+
+	std::unique_ptr<float[]> t1 = tensor1->returnTensor();
+	std::unique_ptr<float[]> t2 = tensor2->returnTensor();
+
+	float* t1d;
+	float* t2d;
+	float* t3d;
+	cudaMalloc(&t1d, bytes);
+	cudaMalloc(&t2d, bytes);
+	cudaMalloc(&t3d, bytes);
+	cudaMemcpy(t1d, t1.get(), bytes, cudaMemcpyHostToDevice);
+	cudaMemcpy(t2d, t2.get(), bytes, cudaMemcpyHostToDevice);
+
+	GPU gpu;
+	int dimGridX = (size + gpu.THREAD_SIZE - 1) / gpu.THREAD_SIZE;
+	addD <<< dimGridX, gpu.THREAD_SIZE >>> (size, t1d, t2d, t3d);
+
+	std::unique_ptr<float[]> t3(new float[size]);
+	cudaMemcpy(t3.get(), t3d, bytes, cudaMemcpyDeviceToHost);
+
+	std::unique_ptr<int[]> shape = tensor1->returnShape();
+	std::unique_ptr<Tensor> ret_matrix(new Tensor(t3, shape));
+
+	cudaFree(t1d);
+	cudaFree(t2d);
+	cudaFree(t3d);
+
+	return ret_matrix;
+}
+
+__global__
+void subtractD(int size, float* vector1, float* vector2, float* retVector) {
+	int index = blockIdx.x * blockDim.x + threadIdx.x;
+	if (index < size) retVector[index] = vector1[index] - vector2[index];
+}
+
+std::unique_ptr<Tensor> subtract(std::unique_ptr<Tensor>& tensor1, std::unique_ptr<Tensor>& tensor2) {
+	std::unique_ptr<int[]> shape1 = tensor1->returnShape();
+	std::unique_ptr<int[]> shape2 = tensor2->returnShape();
+	if ((shape1[0] != shape2[0]) || (shape1[1] != shape2[1]) || (shape1[2] != shape2[2])) throw std::invalid_argument("Tensors are not of same shape!");
+
+	int size = tensor1->returnTensorSize();
+	int bytes = size * sizeof(float);
+
+	std::unique_ptr<float[]> t1 = tensor1->returnTensor();
+	std::unique_ptr<float[]> t2 = tensor2->returnTensor();
+
+	float* t1d;
+	float* t2d;
+	float* t3d;
+	cudaMalloc(&t1d, bytes);
+	cudaMalloc(&t2d, bytes);
+	cudaMalloc(&t3d, bytes);
+	cudaMemcpy(t1d, t1.get(), bytes, cudaMemcpyHostToDevice);
+	cudaMemcpy(t2d, t2.get(), bytes, cudaMemcpyHostToDevice);
+
+	GPU gpu;
+	int dimGridX = (size + gpu.THREAD_SIZE - 1) / gpu.THREAD_SIZE;
+	subtractD <<< dimGridX, gpu.THREAD_SIZE >>> (size, t1d, t2d, t3d);
+
+	std::unique_ptr<float[]> t3(new float[size]);
+	cudaMemcpy(t3.get(), t3d, bytes, cudaMemcpyDeviceToHost);
+
+	std::unique_ptr<int[]> shape = tensor1->returnShape();
+	std::unique_ptr<Tensor> ret_matrix(new Tensor(t3, shape));
+
+	cudaFree(t1d);
+	cudaFree(t2d);
+	cudaFree(t3d);
+
+	return ret_matrix;
+}

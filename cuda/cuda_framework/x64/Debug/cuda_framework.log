@@ -1,10 +1,8 @@
-﻿  Compiling CUDA source file tensorfunctions.cu...
-  Compiling CUDA source file test.cu...
-  
-  C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static --extended-lambda -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\tensorfunctions.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\tensorfunctions.cu" 
+﻿  Compiling CUDA source file test.cu...
   
   C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include"  -G   --keep-dir x64\Debug -maxrregcount=0  --machine 64 --compile -cudart static --extended-lambda -g   -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o x64\Debug\test.cu.obj "C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\test.cu" 
-  tensorfunctions.cu
   test.cu
+tensorfunctions.cu.obj : error LNK2005: "void __cdecl addD(int,float *,float *,float *)" (?addD@@YAXHPEAM00@Z) already defined in matrixfunctions.cu.obj
+tensorfunctions.cu.obj : error LNK2005: "void __cdecl __device_stub__Z4addDiPfS_S_(int,float *,float *,float *)" (?__device_stub__Z4addDiPfS_S_@@YAXHPEAM00@Z) already defined in matrixfunctions.cu.obj
      Creating library C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.lib and object C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.exp
-  cuda_framework.vcxproj -> C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.exe
+C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\x64\Debug\cuda_framework.exe : fatal error LNK1169: one or more multiply defined symbols found

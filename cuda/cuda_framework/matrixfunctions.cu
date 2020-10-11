@@ -158,8 +158,8 @@ float sum(std::unique_ptr<Matrix>& matrix) {
 }
 
 __global__
-void multiplyAllD(int size, float* vector1, float* vector2, float* retVector) {
-	int index = blockIdx.y * blockDim.y + threadIdx.y;
+void multiplyElementwiseD(int size, float* vector1, float* vector2, float* retVector) {
+	int index = blockIdx.x * blockDim.x + threadIdx.x;
 
 	if (index < size) retVector[index] = vector1[index] * vector2[index];
 }
@@ -187,7 +187,7 @@ std::unique_ptr<Matrix> multiplyElementwise(std::unique_ptr<Matrix>& matrix1, st
 
 	GPUParams gpu;
 	int dimGridX = (size + gpu.THREAD_SIZE - 1) / gpu.THREAD_SIZE;
-	multiplyAllD <<< dimGridX, gpu.THREAD_SIZE >>> (size, mat1d, mat2d, mat3d);
+	multiplyElementwiseD <<< dimGridX, gpu.THREAD_SIZE >>> (size, mat1d, mat2d, mat3d);
 
 	std::unique_ptr<float[]> mat3 = std::make_unique<float[]>(size);
 	cudaMemcpy(mat3.get(), mat3d, bytes, cudaMemcpyDeviceToHost);
@@ -202,8 +202,8 @@ std::unique_ptr<Matrix> multiplyElementwise(std::unique_ptr<Matrix>& matrix1, st
 }
 
 __global__
-void divideAllD(int size, float* vector1, float* vector2, float* retVector) {
-	int index = blockIdx.y * blockDim.y + threadIdx.y;
+void divideElementwiseD(int size, float* vector1, float* vector2, float* retVector) {
+	int index = blockIdx.x * blockDim.x + threadIdx.x;
 
 	if (index < size) retVector[index] = vector1[index] / vector2[index];
 }
@@ -231,7 +231,7 @@ std::unique_ptr<Matrix> divideElementwise(std::unique_ptr<Matrix>& matrix1, std:
 
 	GPUParams gpu;
 	int dimGridX = (size + gpu.THREAD_SIZE - 1) / gpu.THREAD_SIZE;
-	divideAllD <<< dimGridX, gpu.THREAD_SIZE >>> (size, mat1d, mat2d, mat3d);
+	divideElementwiseD <<< dimGridX, gpu.THREAD_SIZE >>> (size, mat1d, mat2d, mat3d);
 
 	std::unique_ptr<float[]> mat3 = std::make_unique<float[]>(size);
 	cudaMemcpy(mat3.get(), mat3d, bytes, cudaMemcpyDeviceToHost);

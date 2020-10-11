@@ -3,13 +3,14 @@
 std::unique_ptr<Matrix> Sigmoid::forwardProp(std::unique_ptr<Matrix>& predictions) {
 	auto lambda = [] __host__ __device__(float x) { return 1 / (1 + exp(-1.0*x)); };
 	std::unique_ptr<Matrix> applied = apply(predictions, lambda);
-	Sigmoid::hidden_layer = predictions->clone();
+	Sigmoid::hidden_layer = applied->clone();
 
 	return applied;
 }
 std::unique_ptr<Matrix> Sigmoid::backProp(std::unique_ptr<Matrix>& errors) {
 	auto lambda = [] __host__ __device__(float x) { return x*(1-x); };
 	std::unique_ptr<Matrix> applied = apply(Sigmoid::hidden_layer, lambda);
+	// If there is a problem here then there must be a problem with the multiplyElementwise function
 	std::unique_ptr<Matrix> combo = multiplyElementwise(applied, errors);
 
 	return combo;

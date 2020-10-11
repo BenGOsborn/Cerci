@@ -19,17 +19,14 @@
     <Filter Include="dropout">
       <UniqueIdentifier>{0f87fae3-ca0e-4fe4-9b88-9a21b4cfefee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tensor">
+      <UniqueIdentifier>{43e7c4d1-44c5-4e08-bc5f-ff814974016f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="matrix.cu">
-      <Filter>matrix</Filter>
-    </CudaCompile>
     <CudaCompile Include="test.cu" />
     <CudaCompile Include="fullyconnected.cu">
       <Filter>fullyconnected</Filter>
-    </CudaCompile>
-    <CudaCompile Include="matrixfunctions.cu">
-      <Filter>matrix</Filter>
     </CudaCompile>
     <CudaCompile Include="activationfunctions.cu">
       <Filter>activationfunctions</Filter>
@@ -43,16 +40,22 @@
     <CudaCompile Include="dropout.cu">
       <Filter>dropout</Filter>
     </CudaCompile>
+    <CudaCompile Include="tensor.cu">
+      <Filter>tensor</Filter>
+    </CudaCompile>
+    <CudaCompile Include="tensorfunctions.cu">
+      <Filter>tensor</Filter>
+    </CudaCompile>
+    <CudaCompile Include="matrix.cu">
+      <Filter>matrix</Filter>
+    </CudaCompile>
+    <CudaCompile Include="matrixfunctions.cu">
+      <Filter>matrix</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="matrix.cuh">
-      <Filter>matrix</Filter>
-    </ClInclude>
     <ClInclude Include="fullyconnected.cuh">
       <Filter>fullyconnected</Filter>
-    </ClInclude>
-    <ClInclude Include="matrixfunctions.cuh">
-      <Filter>matrix</Filter>
     </ClInclude>
     <ClInclude Include="activationfunctions.cuh">
       <Filter>activationfunctions</Filter>
@@ -65,6 +68,18 @@
     </ClInclude>
     <ClInclude Include="dropout.cuh">
       <Filter>dropout</Filter>
+    </ClInclude>
+    <ClInclude Include="tensor.cuh">
+      <Filter>tensor</Filter>
+    </ClInclude>
+    <ClInclude Include="tensorfunctions.cuh">
+      <Filter>tensor</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix.cuh">
+      <Filter>matrix</Filter>
+    </ClInclude>
+    <ClInclude Include="matrixfunctions.cuh">
+      <Filter>matrix</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -47,4 +47,3 @@ std::unique_ptr<Matrix> apply(std::unique_ptr<Matrix>& in_matrix, Lambda functio
 
 	return ret_matrix;
 }
-

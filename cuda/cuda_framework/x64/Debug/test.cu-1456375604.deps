@@ -135,10 +135,6 @@ C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include\texture_types.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include\vector_functions.h
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include\vector_functions.hpp
 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.1\include\vector_types.h
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\activationfunctions.cuh
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\fullyconnected.cuh
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\lossfunctions.cuh
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrix.cuh
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\matrixfunctions.cuh
-C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\optimizers.cuh
+C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\tensor.cuh
+C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\tensorfunctions.cuh
 C:\Users\Ben\Documents\Code\Cerci\cuda\cuda_framework\test.cu

@@ -18,3 +18,4 @@
 * Implement 3D tensor class and operations and network which allows for parallel processing of multiple training sets at the same time
 	* Do this with a stretch tensor function that makes a tensor the length of the input set then perform forward and back propogation on the same big tensor which does all the operations at once 
 	* To update those weights take an average of the error calculated and then update the original
+* Add support for python

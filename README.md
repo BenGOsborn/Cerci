@@ -15,8 +15,6 @@
 * Add batch normalization to the network
 * Add weight initializing functions using the proper weight generation techniques
 * Cleanup the files and optimize the matrix operations and misc functions
-* Remove unused functions from the misc library
-* Have the returnNetwork() function return the ADAM values aswell for further training which can be loaded in
-* Add a random weight initialization tool so that the weights do not have to be initialized each time and can rather be a number which will be generated as a tensor or a matrix
-* Refactor the tensor classes into one big class which can support tensors of any length for simplicity, as well as reconfiguring the convolutional layers into one bigger class
-* Some of the training predictions and things have been broken by the change to the requirements from the single convnet
+* Implement 3D tensor class and operations and network which allows for parallel processing of multiple training sets at the same time
+	* Do this with a stretch tensor function that makes a tensor the length of the input set then perform forward and back propogation on the same big tensor which does all the operations at once 
+	* To update those weights take an average of the error calculated and then update the original

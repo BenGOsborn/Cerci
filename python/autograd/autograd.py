@@ -65,3 +65,5 @@ g.backwards()
 # This can be fixed by replacing seperate gradients to get the gradient with respect to that val
 # To fix this as well start with the root derivative of each to be 1 and then mulltiply it out respectively
 print(e.grad_b)
+
+# So instead of doing such methods have seperate classes of expressions and then an expression class and a variable class

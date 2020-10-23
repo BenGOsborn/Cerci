@@ -1,69 +1,132 @@
-class Add:
+import math
+
+class Operator:
     def __init__(self, a, b):
         self.a = a
         self.b = b
 
+class OperatorAdd(Operator):
+    def __init__(self, a, b):
+        super().__init__(a, b)
+
+    def eval(self):
+        return self.a.forward() + self.b.forward()
+
+    def dda(self):
+        return 1
+
+    def ddb(self):
+        return 1
+
+class OperatorSubtract(Operator):
+    def __init__(self, a, b):
+        super().__init__(a, b)
+
+    def eval(self):
+        return self.a.forward() - self.b.forward()
+
+    def dda(self):
+        return 1
+
+    def ddb(self):
+        return -1
+
+class OperatorMultiply(Operator):
+    def __init__(self, a, b):
+        super().__init__(a, b)
+
+    def eval(self):
+        return self.a.forward() * self.b.forward()
+
+    def dda(self):
+        return self.b.forward()
+
+    def ddb(self):
+        return self.a.forward()
+
+class OperatorDivide(Operator):
+    def __init__(self, a, b):
+        super().__init__(a, b)
+
+    def eval(self):
+        return self.a.forward() / self.b.forward()
+
+    def dda(self):
+        return 1 / self.b.forward()
+
+    def ddb(self):
+        return -self.a.forward() / (self.b.forward() * self.b.forward())
+
+class OperatorPower(Operator):
+    def __init__(self, a, b):
+        super().__init__(a, b)
+
+    def eval(self):
+        return self.a.forward() ** self.b.forward()
+
+    def dda(self):
+        return self.b.forward() * (self.a.forward() ** (self.b.forward() - 1))
+
+    def ddb(self):
+        return math.log(self.a.forward()) * (self.a.forward() ** self.b.forward())
+
+class Expression:
+    def __init__(self, a, b, op):
+        self.a = a
+        self.b = b
+        self.op = op(a, b)
         self.forwarded = None
 
-        self.grad = None
-        self.grad_a = None
-        self.grad_b = None
+    def __add__(self, other):
+        return Expression(self, other, OperatorAdd)
+
+    def __sub__(self, other):
+        return Expression(self, other, OperatorSubtract)
+
+    def __mul__(self, other):
+        return Expression(self, other, OperatorMultiply)
+
+    def __truediv__(self, other):
+        return Expression(self, other, OperatorDivide)
+
+    def __pow__(self, other):
+        return Expression(self, other, OperatorPower)
+
+    def backwards(self, factors=1):
+        self.a.backwards(factors=factors*self.op.dda())
+        self.b.backwards(factors=factors*self.op.ddb())
+
+    def reset(self):
+        self.a.reset()
+        self.b.reset()
 
     def forward(self):
-        self.forwarded = self.a.forward() + self.b.forward()
+        if (self.forwarded != None):
+            return self.forwarded
+
+        self.forwarded = self.op.eval()
         return self.forwarded
 
-    def gradA(self):
-        self.grad_a = 1
-        self.a.grad_a = self.grad_a * self.a.gradA()
-        self.a.grad_b = self.grad_a * self.a.gradB()
-        return self.grad_a
-
-    def gradB(self):
-        self.grad_b = 1
-        self.b.grad_a = self.grad_b * self.b.gradA()
-        self.b.grad_b = self.grad_b * self.b.gradB()
-        return self.grad_b
-
-    def backwards(self):
-        self.gradA()
-        self.gradB()
-
-class Var:
-    def __init__(self, val):
-        self.forwarded = val
-        
+class Variable(Expression):
+    def __init__(self, value):
+        self.value = value
         self.grad = None
-        self.grad_a = None
-        self.grad_b = None
+
+    def reset(self):
+        self.grad = None
 
     def forward(self):
-        return self.forwarded
+        return self.value
 
-    def gradA(self):
-        self.grad_a = 1
-        return self.grad_a
+    def backwards(self, factors):
+        if (self.grad != None):
+            self.grad += factors
+            return
+        self.grad = factors
 
-    def gradB(self):
-        self.grad_b = 0
-        return self.grad_b
+x = Variable(0)
+sigmoid = Variable(1) / ( Variable(1) + ( Variable(math.e) ** ( Variable(-1) * x ) ) ) 
 
-a = Var(3)
-b = Var(2)
-c = Var(8)
-d = Var(5)
+sigmoid.backwards()
 
-e = Add(a, b)
-f = Add(c, d)
-
-g = Add(e, f)
-
-g.forward()
-g.backwards()
-
-# It appears that the gradients of what it should be has been shifted down, so the deriv of g with respect to a is a little bit broken due to finding grad a and grad b and such
-# This can be fixed by replacing seperate gradients to get the gradient with respect to that val
-# To fix this as well start with the root derivative of each to be 1 and then mulltiply it out respectively
-print(e.grad_b)
-
-# So instead of doing such methods have seperate classes of expressions and then an expression class and a variable class
+print(x.grad)

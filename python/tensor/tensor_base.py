@@ -1,4 +1,6 @@
-class Tensor:
+import tensor_expressions
+
+class TensorBase:
     def __init__(self, tensor, shape):
         self.dims = len(shape)
         self.size = len(tensor)
@@ -42,4 +44,4 @@ class Tensor:
             new_size *= new_shape[i]
         assert(new_size == self.size)
 
-        return Tensor(self.tensor.copy(), self.shape.copy())
+        return tensor_expressions.Tensor(self.tensor.copy(), self.shape.copy())

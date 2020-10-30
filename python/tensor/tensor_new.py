@@ -1,58 +1,63 @@
 class AddElementwise:
 
     @staticmethod
-    def forward(matrix_a, matrix_b):
-        assert(matrix_a.shape == matrix_b.shape)
-        new_tensor = [a+b for a, b in zip(matrix_a.tensor, matrix_b.tensor)]
+    def forward(matrix_left, matrix_right, backwards=False):
+        assert(matrix_left.shape == matrix_right.shape)
+        new_tensor = [a+b for a, b in zip(matrix_left.tensor, matrix_right.tensor)]
 
-        return Tensor(new_tensor, matrix_a.shape, left=matrix_a, right=matrix_b, track_grad=(matrix_a.track_grad or matrix_b.track_grad), operator=AddElementwise) # Use matrix_a.requires_grad or matrix_b.requires_grad
-        
-    @staticmethod
-    def dda(matrix_a, matrix_b):
-        assert(matrix_a.shape == matrix_b.shape)
-        ret_tensor = [1 for _ in range(matrix_a.size)]
+        if (not backwards):
+            return Tensor(new_tensor, matrix_left.shape, left=matrix_left, right=matrix_right, 
+                            track_grad=(matrix_left.track_grad or matrix_right.track_grad), operator=AddElementwise)
 
-        # What operator should it return here and its not like it needs to track the gradient it just needs to be able to track itself
-        return Tensor(ret_tensor, matrix_a.shape, left=None, right=None, track_grad=False, operator=None)
+        return Tensor(new_tensor, matrix_left.shape, left=None, right=None, 
+                        track_grad=False, operator=None)
 
     @staticmethod
-    def ddb(matrix_a, matrix_b):
-        assert(matrix_a.shape == matrix_b.shape)
-        ret_tensor = [1 for _ in range(matrix_a.size)]
+    def ddleft(matrix_left, matrix_right):
+        assert(matrix_left.shape == matrix_right.shape)
+        new_tensor = [1 for _ in range(matrix_left.size)] 
 
-        return Tensor(ret_tensor, matrix_a.shape, left=None, right=None, track_grad=False, operator=None)
+        return Tensor(new_tensor, matrix_left.shape, left=None, right=None,
+                       track_grad=False, operator=None)
+
+    @staticmethod
+    def ddright(matrix_left, matrix_right):
+        assert(matrix_left.shape == matrix_right.shape)
+        new_tensor = [1 for _ in range(matrix_left.size)] 
+
+        return Tensor(new_tensor, matrix_left.shape, left=None, right=None,
+                       track_grad=False, operator=None)
 
 class MultiplyElementwise:
 
     @staticmethod
-    def forward(matrix_a, matrix_b):
-        assert(matrix_a.shape == matrix_b.shape)
-        new_tensor = [a*b for a, b in zip(matrix_a.tensor, matrix_b.tensor)]
+    def forward(matrix_left, matrix_right, backwards=False):
+        assert(matrix_left.shape == matrix_right.shape)
+        new_tensor = [a*b for a, b in zip(matrix_left.tensor, matrix_right.tensor)]
 
-        return Tensor(new_tensor, matrix_a.shape, left=matrix_a, right=matrix_b, track_grad=(matrix_a.track_grad or matrix_b.track_grad), operator=MultiplyElementwise)
-
-    # But with these does it need to track the left and the right or no?
+        if (not backwards):
+            return Tensor(new_tensor, matrix_left.shape, left=matrix_left, right=matrix_right, 
+                            track_grad=(matrix_left.track_grad or matrix_right.track_grad), operator=MultiplyElementwise)
+        
+        return Tensor(new_tensor, matrix_left.shape, left=None, right=None, 
+                        track_grad=False, operator=None)
 
     @staticmethod
-    def dda(matrix_a, matrix_b):
-        return Tensor(matrix_a.tensor.copy(), matrix_a.shape.copy(), left=None, right=None, track_grad=False, operator=None)
+    def ddleft(matrix_left, matrix_right):
+        assert(matrix_left.shape == matrix_right.shape)
+
+        return Tensor(matrix_left.tensor.copy(), matrix_left.shape.copy(), left=None, right=None, 
+                       track_grad=False, operator=None)
 
     @staticmethod
-    def ddb(matrix_a, matrix_b):
-        return Tensor(matrix_b.tensor.copy(), matrix_b.shape.copy(), left=None, right=None, track_grad=False, operator=None)
+    def ddright(matrix_left, matrix_right):
+        assert(matrix_left.shape == matrix_right.shape)
 
-# This is going to contain all of the information about the tensor relating to the gradient
-class TensorGrad:
-    def __init__(self, left, right, track_grad, operator):
-        self.track_grad = False
-        self.operator = None
-        self.grad = None
+        return Tensor(matrix_right.tensor.copy(), matrix_right.shape.copy(), left=None, right=None,
+                       track_grad=False, operator=None)
 
-        self.left = left
-        self.right = right
-
-class Tensor(TensorGrad):
-    def __init__(self, tensor, shape, left=None, right=None, track_grad=False, operator=None): # The left and the right will contain the links to the other nodes in the tree
+class TensorBase:
+    def __init__(self, tensor, shape): # The left and the right will contain the links to the other nodes in the tree
         self.dims = len(shape)
         self.size = len(tensor)
 
@@ -63,8 +68,6 @@ class Tensor(TensorGrad):
 
         self.tensor = tensor
         self.shape = shape
-
-        super().__init__(left, right, track_grad, operator)
     
     def __str__(self):
         return self.__string()
@@ -89,15 +92,38 @@ class Tensor(TensorGrad):
         
         return f"{mat_final}\n{(abs(index) - 1) * ' '}]" if (index != -1) else f"{mat_final}\n]"
 
-    def __add__(self, other):
-        return AddElementwise.forward(self, other)
-
     def __mul__(self, other):
         return MultiplyElementwise.forward(self, other)
 
-    def reset(self):
-        self.grad = None
+class Tensor(TensorBase):
+    def __init__(self, tensor, shape, left=None, right=None, track_grad=False, operator=None):
+        super().__init__(tensor, shape)
+
+        self.track_grad = track_grad
+
+        if (track_grad):
+            self.operator = operator
+
+            self.left = left
+            self.right = right
+            self.grad = Tensor([0 for _ in range(self.size)], self.shape)
+
+    def zeroGrad(self):
+        if (self.track_grad):
+            self.grad = Tensor([0 for _ in range(self.size)], self.shape)
+            if (self.left != None):
+                self.left.zeroGrad()
+            if (self.right != None):
+                self.right.zeroGrad()
 
     # Now I need to do the actual backwards function
-    def backwards(self, factors):
-        pass
+    def backwards(self, factors=None):
+        if (factors == None):
+            factors = Tensor([1 for _ in range(self.size)], self.shape)
+        self.grad = AddElementwise.forward(self.grad, factors, backwards=True)
+
+        # I cant just use none when I port this to C++
+        if (self.left != None):
+            self.left.backwards(factors=MultiplyElementwise.forward(factors, self.operator.ddleft(self.left, self.right)))
+        if (self.right != None):
+            self.right.backwards(factors=MultiplyElementwise.forward(factors, self.operator.ddright(self.left, self.right)))

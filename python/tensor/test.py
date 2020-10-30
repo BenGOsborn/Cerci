@@ -1,10 +1,10 @@
 from tensor_new import Tensor
 
-x = Tensor([2, 2, 2, 2], [2, 2])
-y = Tensor([3, 3, 3, 3], [2, 2])
+x = Tensor([2, 2, 2, 2], [2, 2], track_grad=True)
+y = Tensor([3, 3, 3, 3], [2, 2], track_grad=True)
 
-z = x * y + x
-print(z)
+z = x * y
+z.backwards()
 
 # This is why the tensor needs to have all of these options built into it recursively
 

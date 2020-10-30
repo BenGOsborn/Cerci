@@ -8,7 +8,7 @@ class AddElementwise:
         new_tensor = [a+b for a, b in zip(matrix_a.tensor, matrix_b.tensor)]
 
         return tensor_expressions.Tensor(new_tensor, matrix_a.shape) # Use matrix_a.requires_grad or matrix_b.requires_grad
-
+        
     @staticmethod
     def dda(matrix_a, matrix_b):
         assert(matrix_a.shape == matrix_b.shape)

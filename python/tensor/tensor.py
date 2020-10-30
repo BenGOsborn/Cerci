@@ -1,11 +1,12 @@
 class Tensor:
     def __init__(self, tensor, shape):
         self.dims = len(shape)
+        self.size = len(tensor)
 
-        product = 1
+        check_length = 1
         for i in range(self.dims):
-            product *= shape[i]
-        assert(product == len(tensor))
+            check_length *= shape[i]
+        assert(check_length == self.size)
 
         self.tensor = tensor
         self.shape = shape
@@ -36,15 +37,9 @@ class Tensor:
     def reshape(self, new_shape):
         assert(self.dims == len(new_shape))
 
-        product = 1
+        new_size = 1
         for i in range(len(new_shape)):
-            product *= new_shape[i]
-        assert(product == len(self.tensor))
+            new_size *= new_shape[i]
+        assert(new_size == self.size)
 
         return Tensor(self.tensor.copy(), self.shape.copy())
-
-    def returnTensor(self):
-        return self.tensor.copy()
-
-t = Tensor([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [2, 2, 2, 2])
-print(t)

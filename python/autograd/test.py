@@ -1,11 +1,11 @@
 from autograd_expressions import Variable
 from autograd_functions import *
 
-a = Variable(5)
-b = Variable(2)
+a = Variable(2)
+b = Variable(3)
 
-c = a + b ** b
+c = a * b
 
 c.backwards()
 
-print(b.grad)
+print(a.grad)

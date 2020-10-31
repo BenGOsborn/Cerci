@@ -46,14 +46,14 @@ class MultiplyElementwise:
     def ddleft(matrix_left, matrix_right):
         assert(matrix_left.shape == matrix_right.shape)
 
-        return Tensor(matrix_left.tensor.copy(), matrix_left.shape.copy(), left=None, right=None, 
+        return Tensor(matrix_right.tensor.copy(), matrix_right.shape.copy(), left=None, right=None, 
                        track_grad=False, operator=None)
 
     @staticmethod
     def ddright(matrix_left, matrix_right):
         assert(matrix_left.shape == matrix_right.shape)
 
-        return Tensor(matrix_right.tensor.copy(), matrix_right.shape.copy(), left=None, right=None,
+        return Tensor(matrix_left.tensor.copy(), matrix_left.shape.copy(), left=None, right=None,
                        track_grad=False, operator=None)
 
 class TensorBase:
@@ -91,6 +91,9 @@ class TensorBase:
             mat_final += f"\n{abs(index) * ' '}{ self.__string(index-1, position+product*i)} "
         
         return f"{mat_final}\n{(abs(index) - 1) * ' '}]" if (index != -1) else f"{mat_final}\n]"
+
+    def __add__(self, other):
+        return AddElementwise.forward(self, other)
 
     def __mul__(self, other):
         return MultiplyElementwise.forward(self, other)

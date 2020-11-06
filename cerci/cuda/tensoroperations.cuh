@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <cmath>
 
 int THREAD_SIZE = 1 << 10;
 int BLOCK_SIZE = 1 << 5;

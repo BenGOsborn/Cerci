@@ -17,6 +17,4 @@ std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::u
 std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims);
 
 // Apply function down here? Is it necessary? I could just use the tensors into the function and then have the operations applied
-
-
-
+// Use the function and the template I had used before

@@ -1,10 +1,9 @@
 #pragma once
 
+// Perform the error checking on the python higher level part
+
 #include <memory>
 #include <cmath>
-
-int THREAD_SIZE = 1 << 10;
-int BLOCK_SIZE = 1 << 5;
 
 // Elementwise operations
 std::unique_ptr<float[]> CUDAaddElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size);

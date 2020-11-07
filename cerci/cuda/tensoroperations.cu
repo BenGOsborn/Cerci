@@ -1,5 +1,8 @@
 #include "tensoroperations.cuh"
 
+const int THREAD_SIZE = 1 << 10;
+const int BLOCK_SIZE = 1 << 5;
+
 __global__
 void addElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -7,10 +10,6 @@ void addElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
 }
 
 std::unique_ptr<float[]> CUDAaddElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size) {
-    // We could just assume that they are of the same length...?
-    // Its cheaper to do the error checking here than to do it on init of each tensor
-    // This assumes that the values we give it are correct as there is no error checking
-    // Remove all checking
     int bytes = ptr_size * sizeof(float);
 
     float* gpu_ptr1;
@@ -43,10 +42,6 @@ void subtractElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
 }
 
 std::unique_ptr<float[]> CUDAsubtractElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size) {
-    // We could just assume that they are of the same length...?
-    // Its cheaper to do the error checking here than to do it on init of each tensor
-    // This assumes that the values we give it are correct as there is no error checking
-    // Remove all checking
     int bytes = ptr_size * sizeof(float);
 
     float* gpu_ptr1;
@@ -79,10 +74,6 @@ void multiplyElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
 }
 
 std::unique_ptr<float[]> CUDAmultiplyElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size) {
-    // We could just assume that they are of the same length...?
-    // Its cheaper to do the error checking here than to do it on init of each tensor
-    // This assumes that the values we give it are correct as there is no error checking
-    // Remove all checking
     int bytes = ptr_size * sizeof(float);
 
     float* gpu_ptr1;
@@ -115,10 +106,6 @@ void divideElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
 }
 
 std::unique_ptr<float[]> CUDAdivideElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size) {
-    // We could just assume that they are of the same length...?
-    // Its cheaper to do the error checking here than to do it on init of each tensor
-    // This assumes that the values we give it are correct as there is no error checking
-    // Remove all checking
     int bytes = ptr_size * sizeof(float);
 
     float* gpu_ptr1;

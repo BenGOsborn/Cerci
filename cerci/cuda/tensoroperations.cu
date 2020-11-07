@@ -1,7 +1,7 @@
 #include "tensoroperations.cuh"
 
-const int THREAD_SIZE = 1 << 10;
-const int BLOCK_SIZE = 1 << 5;
+const int THREAD_SIZE_XY = 1 << 10;
+const int THREAD_SIZE_Z = 1 << 6;
 
 __global__
 void addElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
@@ -22,8 +22,8 @@ std::unique_ptr<float[]> CUDAaddElementwise(std::unique_ptr<float[]>& in_ptr1, s
     cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(gpu_ptr2, in_ptr2.get(), bytes, cudaMemcpyHostToDevice);
 
-    int dimGridX = (ptr_size + THREAD_SIZE - 1) / THREAD_SIZE;
-    addElementwiseD <<< dimGridX, THREAD_SIZE >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
+    int dimGridX = (ptr_size + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
+    addElementwiseD <<< dimGridX, THREAD_SIZE_XY >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr_size]);
     cudaMemcpy(out_ptr.get(), gpu_ptr3, bytes, cudaMemcpyDeviceToHost);
@@ -54,8 +54,8 @@ std::unique_ptr<float[]> CUDAsubtractElementwise(std::unique_ptr<float[]>& in_pt
     cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(gpu_ptr2, in_ptr2.get(), bytes, cudaMemcpyHostToDevice);
 
-    int dimGridX = (ptr_size + THREAD_SIZE - 1) / THREAD_SIZE;
-    subtractElementwiseD <<< dimGridX, THREAD_SIZE >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
+    int dimGridX = (ptr_size + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
+    subtractElementwiseD <<< dimGridX, THREAD_SIZE_XY >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr_size]);
     cudaMemcpy(out_ptr.get(), gpu_ptr3, bytes, cudaMemcpyDeviceToHost);
@@ -86,8 +86,8 @@ std::unique_ptr<float[]> CUDAmultiplyElementwise(std::unique_ptr<float[]>& in_pt
     cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(gpu_ptr2, in_ptr2.get(), bytes, cudaMemcpyHostToDevice);
 
-    int dimGridX = (ptr_size + THREAD_SIZE - 1) / THREAD_SIZE;
-    multiplyElementwiseD <<< dimGridX, THREAD_SIZE >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
+    int dimGridX = (ptr_size + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
+    multiplyElementwiseD <<< dimGridX, THREAD_SIZE_XY >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr_size]);
     cudaMemcpy(out_ptr.get(), gpu_ptr3, bytes, cudaMemcpyDeviceToHost);
@@ -118,8 +118,8 @@ std::unique_ptr<float[]> CUDAdivideElementwise(std::unique_ptr<float[]>& in_ptr1
     cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(gpu_ptr2, in_ptr2.get(), bytes, cudaMemcpyHostToDevice);
 
-    int dimGridX = (ptr_size + THREAD_SIZE - 1) / THREAD_SIZE;
-    divideElementwiseD <<< dimGridX, THREAD_SIZE >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
+    int dimGridX = (ptr_size + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
+    divideElementwiseD <<< dimGridX, THREAD_SIZE_XY >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr_size]);
     cudaMemcpy(out_ptr.get(), gpu_ptr3, bytes, cudaMemcpyDeviceToHost);
@@ -150,8 +150,8 @@ std::unique_ptr<float[]> CUDApowerElementwise(std::unique_ptr<float[]>& in_ptr1,
     cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(gpu_ptr2, in_ptr2.get(), bytes, cudaMemcpyHostToDevice);
 
-    int dimGridX = (ptr_size + THREAD_SIZE - 1) / THREAD_SIZE;
-    powerElementwiseD <<< dimGridX, THREAD_SIZE >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
+    int dimGridX = (ptr_size + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
+    powerElementwiseD <<< dimGridX, THREAD_SIZE_XY >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr_size]);
     cudaMemcpy(out_ptr.get(), gpu_ptr3, bytes, cudaMemcpyDeviceToHost);
@@ -192,15 +192,27 @@ std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::u
 
     cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
 
+
+
+
+    // We divide it because this is how many blocks we need to have and then there is BLOCK_SIZE num of threads per block
     // It is failing because I am trying to launch too many threads at once
-    int grid_cols = (cols + BLOCK_SIZE - 1) / BLOCK_SIZE; // We divide it because this is how many blocks we need to have and then there is BLOCK_SIZE num of threads per block
-    int grid_rows = (rows + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    int grid_depth = (depths + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    dim3 dimGrid(grid_cols, grid_rows, grid_depth);
-    dim3 dimThreads(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+    int grid_cols = (cols + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY; 
+    int grid_rows = (rows + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
+    int grid_depths = (depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
+
+    std::cout << THREAD_SIZE_XY << " " << THREAD_SIZE_Z << std::endl; // This is the size of the thread sizes
+    std::cout << grid_cols << " " << grid_rows << " " << grid_depths << std::endl; // This is the size of the blocks
+    std::cout << grid_cols*THREAD_SIZE_XY << " " << grid_rows*THREAD_SIZE_XY << " " << grid_depths*THREAD_SIZE_Z << std::endl; // This is the size of the threads launched
+
+    dim3 dimGrid(grid_cols, grid_rows, grid_depths);
+    dim3 dimThreads(THREAD_SIZE_XY, THREAD_SIZE_XY, THREAD_SIZE_Z);
     
     transposeD <<< dimGrid, dimThreads >>> (cols, rows, depths, gpu_ptr1, gpu_ptr2);
     cudaErr( cudaPeekAtLastError() );
+
+
+    
 
     // Change all of these from out_ptr3 to out_ptr as required
     std::unique_ptr<float[]> out_ptr(new float[ptr1_size]);

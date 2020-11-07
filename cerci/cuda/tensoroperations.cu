@@ -138,10 +138,6 @@ void powerElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
 }
 
 std::unique_ptr<float[]> CUDApowerElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size) {
-    // We could just assume that they are of the same length...?
-    // Its cheaper to do the error checking here than to do it on init of each tensor
-    // This assumes that the values we give it are correct as there is no error checking
-    // Remove all checking
     int bytes = ptr_size * sizeof(float);
 
     float* gpu_ptr1;
@@ -166,3 +162,16 @@ std::unique_ptr<float[]> CUDApowerElementwise(std::unique_ptr<float[]>& in_ptr1,
    
     return out_ptr3;
 }
+
+__global__
+// I might need a seperate pointer for this because it would of overwritten the value
+void transposeD(int rows, int cols, float* ptr1, float* ptr2) {
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    // Of course this is going to need a Z coordinate for the infinite dimensions it can take
+    if ((row < rows) && (col < cols)) ptr2[]; // This will need to have a Z coord added to it
+}
+
+std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims) {
+
+} 

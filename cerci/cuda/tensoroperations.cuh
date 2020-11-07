@@ -13,6 +13,8 @@ std::unique_ptr<float[]> CUDAsubtractElementwise(std::unique_ptr<float[]>& in_pt
 std::unique_ptr<float[]> CUDApowerElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size);
 
 // Tricky operations
+
+// In theory we can think of infinite dimensions in terms of just a very long third dimension of different sections
 std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims);
 std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims);
 

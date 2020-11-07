@@ -1,5 +1,18 @@
 #pragma once
 
+// Error macro
+
+#include <iostream>
+#define cudaErr(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+        std::cout << cudaGetErrorString(code) << " " << file << " " << line << std::endl; 
+        if (abort) exit(code);
+   }
+}
+
 // Perform the error checking on the python higher level part
 
 #include <memory>
@@ -15,7 +28,7 @@ std::unique_ptr<float[]> CUDApowerElementwise(std::unique_ptr<float[]>& in_ptr1,
 // Tricky operations
 
 // In theory we can think of infinite dimensions in terms of just a very long third dimension of different sections
-std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims);
+std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size);
 std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims);
 
 // Apply function down here? Is it necessary? I could just use the tensors into the function and then have the operations applied

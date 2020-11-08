@@ -244,9 +244,9 @@ std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::un
     float* gpu_ptr1;
     float* gpu_ptr2;
     float* gpu_ptr3;
-    cudaMalloc(&gpu_ptr1, gpu_btr1_bytes);
-    cudaMalloc(&gpu_ptr2, gpu_btr2_bytes);
-    cudaMalloc(&gpu_ptr3, gpu_btr3_bytes);
+    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr2_bytes);
+    cudaMalloc(&gpu_ptr3, gpu_ptr3_bytes);
     cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(gpu_ptr2, in_ptr2.get(), gpu_ptr2_bytes, cudaMemcpyHostToDevice);
 

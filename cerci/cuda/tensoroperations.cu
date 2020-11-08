@@ -164,7 +164,6 @@ std::unique_ptr<float[]> CUDApowerElementwise(std::unique_ptr<float[]>& in_ptr1,
 }
 
 __global__
-// I might need a seperate pointer for this because it would of overwritten the value
 void transposeD(int rows, int cols, int depths, float* ptr1, float* ptr2) {
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int row = blockIdx.y * blockDim.y + threadIdx.y;
@@ -185,36 +184,24 @@ std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::u
         depths *= in_ptr1_dims[i];
     }
 
+    // The problem is thats the max amount of threads that can be launched Im assuming but Im multiplying it by 3 for each dimension
+    // Leading to there being more dimensions
     float* gpu_ptr1;
     float* gpu_ptr2;
     cudaMalloc(&gpu_ptr1, bytes);
     cudaMalloc(&gpu_ptr2, bytes);
-
     cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
 
-
-
-
-    // We divide it because this is how many blocks we need to have and then there is BLOCK_SIZE num of threads per block
-    // It is failing because I am trying to launch too many threads at once
-    int grid_cols = (cols + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY; 
-    int grid_rows = (rows + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
+    // And of course it just failed because I just overloaded its size of threads allowed
+    int grid_cols = (cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_rows = (rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
     int grid_depths = (depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
 
-    std::cout << THREAD_SIZE_XY << " " << THREAD_SIZE_Z << std::endl; // This is the size of the thread sizes
-    std::cout << grid_cols << " " << grid_rows << " " << grid_depths << std::endl; // This is the size of the blocks
-    std::cout << grid_cols*THREAD_SIZE_XY << " " << grid_rows*THREAD_SIZE_XY << " " << grid_depths*THREAD_SIZE_Z << std::endl; // This is the size of the threads launched
+    dim3 gridSize(grid_cols, grid_cols, grid_depths);
+    dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
 
-    dim3 dimGrid(grid_cols, grid_rows, grid_depths);
-    dim3 dimThreads(THREAD_SIZE_XY, THREAD_SIZE_XY, THREAD_SIZE_Z);
-    
-    transposeD <<< dimGrid, dimThreads >>> (cols, rows, depths, gpu_ptr1, gpu_ptr2);
-    cudaErr( cudaPeekAtLastError() );
+    transposeD <<< gridSize, threadSize >>> (rows, cols, depths, gpu_ptr1, gpu_ptr2);
 
-
-    
-
-    // Change all of these from out_ptr3 to out_ptr as required
     std::unique_ptr<float[]> out_ptr(new float[ptr1_size]);
     cudaMemcpy(out_ptr.get(), gpu_ptr2, bytes, cudaMemcpyDeviceToHost);
 

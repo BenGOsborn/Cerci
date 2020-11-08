@@ -289,8 +289,11 @@ void maxPoolingD(int cols, int rows, int depths, int kernel_cols, int kernel_row
 
             // Might potentially need a different way of calculating this I am not sure that it will work
             int pooled_cols_size = (cols - kernel_cols + stride_cols) / stride_cols;
-            int pooled_col = (col - kernel_cols + stride_cols) / stride_cols; // Investigate for this formula in general what happens if it is negative
+            int pooled_col = (col - kernel_cols + stride_cols) / stride_cols;
+            if (pooled_col < 0) pooled_col = 0;
             int pooled_row = (row - kernel_rows + stride_rows) / stride_rows;
+            if (pooled_row < 0) pooled_row = 0;
+
             ptr2[depth * rows * cols + pooled_row * pooled_cols_size + pooled_col] = max;
 
         }

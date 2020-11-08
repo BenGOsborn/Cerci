@@ -10,23 +10,23 @@ void addElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
 }
 
 std::unique_ptr<float[]> CUDAaddElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size) {
-    int bytes = ptr_size * sizeof(float);
+    int gpu_ptr1_bytes = ptr_size * sizeof(float);
 
     float* gpu_ptr1;
     float* gpu_ptr2;
     float* gpu_ptr3;
-    cudaMalloc(&gpu_ptr1, bytes);
-    cudaMalloc(&gpu_ptr2, bytes);
-    cudaMalloc(&gpu_ptr3, bytes);
+    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr3, gpu_ptr1_bytes);
 
-    cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_ptr2, in_ptr2.get(), bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr2, in_ptr2.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
 
     int dimGridX = (ptr_size + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
     addElementwiseD <<< dimGridX, THREAD_SIZE_XY >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr_size]);
-    cudaMemcpy(out_ptr.get(), gpu_ptr3, bytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_ptr.get(), gpu_ptr3, gpu_ptr1_bytes, cudaMemcpyDeviceToHost);
 
     cudaFree(gpu_ptr1);
     cudaFree(gpu_ptr2);
@@ -42,23 +42,23 @@ void subtractElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
 }
 
 std::unique_ptr<float[]> CUDAsubtractElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size) {
-    int bytes = ptr_size * sizeof(float);
+    int gpu_ptr1_bytes = ptr_size * sizeof(float);
 
     float* gpu_ptr1;
     float* gpu_ptr2;
     float* gpu_ptr3;
-    cudaMalloc(&gpu_ptr1, bytes);
-    cudaMalloc(&gpu_ptr2, bytes);
-    cudaMalloc(&gpu_ptr3, bytes);
+    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr3, gpu_ptr1_bytes);
 
-    cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_ptr2, in_ptr2.get(), bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr2, in_ptr2.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
 
     int dimGridX = (ptr_size + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
     subtractElementwiseD <<< dimGridX, THREAD_SIZE_XY >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr_size]);
-    cudaMemcpy(out_ptr.get(), gpu_ptr3, bytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_ptr.get(), gpu_ptr3, gpu_ptr1_bytes, cudaMemcpyDeviceToHost);
 
     cudaFree(gpu_ptr1);
     cudaFree(gpu_ptr2);
@@ -74,23 +74,23 @@ void multiplyElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
 }
 
 std::unique_ptr<float[]> CUDAmultiplyElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size) {
-    int bytes = ptr_size * sizeof(float);
+    int gpu_ptr1_bytes = ptr_size * sizeof(float);
 
     float* gpu_ptr1;
     float* gpu_ptr2;
     float* gpu_ptr3;
-    cudaMalloc(&gpu_ptr1, bytes);
-    cudaMalloc(&gpu_ptr2, bytes);
-    cudaMalloc(&gpu_ptr3, bytes);
+    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr3, gpu_ptr1_bytes);
 
-    cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_ptr2, in_ptr2.get(), bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr2, in_ptr2.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
 
     int dimGridX = (ptr_size + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
     multiplyElementwiseD <<< dimGridX, THREAD_SIZE_XY >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr_size]);
-    cudaMemcpy(out_ptr.get(), gpu_ptr3, bytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_ptr.get(), gpu_ptr3, gpu_ptr1_bytes, cudaMemcpyDeviceToHost);
 
     cudaFree(gpu_ptr1);
     cudaFree(gpu_ptr2);
@@ -106,23 +106,23 @@ void divideElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
 }
 
 std::unique_ptr<float[]> CUDAdivideElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size) {
-    int bytes = ptr_size * sizeof(float);
+    int gpu_ptr1_bytes = ptr_size * sizeof(float);
 
     float* gpu_ptr1;
     float* gpu_ptr2;
     float* gpu_ptr3;
-    cudaMalloc(&gpu_ptr1, bytes);
-    cudaMalloc(&gpu_ptr2, bytes);
-    cudaMalloc(&gpu_ptr3, bytes);
+    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr3, gpu_ptr1_bytes);
 
-    cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_ptr2, in_ptr2.get(), bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr2, in_ptr2.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
 
     int dimGridX = (ptr_size + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
     divideElementwiseD <<< dimGridX, THREAD_SIZE_XY >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr_size]);
-    cudaMemcpy(out_ptr.get(), gpu_ptr3, bytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_ptr.get(), gpu_ptr3, gpu_ptr1_bytes, cudaMemcpyDeviceToHost);
 
     cudaFree(gpu_ptr1);
     cudaFree(gpu_ptr2);
@@ -138,23 +138,23 @@ void powerElementwiseD(int size, float* ptr1, float* ptr2, float* ptr3) {
 }
 
 std::unique_ptr<float[]> CUDApowerElementwise(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<float[]>& in_ptr2, int ptr_size) {
-    int bytes = ptr_size * sizeof(float);
+    int gpu_ptr1_bytes = ptr_size * sizeof(float);
 
     float* gpu_ptr1;
     float* gpu_ptr2;
     float* gpu_ptr3;
-    cudaMalloc(&gpu_ptr1, bytes);
-    cudaMalloc(&gpu_ptr2, bytes);
-    cudaMalloc(&gpu_ptr3, bytes);
+    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr3, gpu_ptr1_bytes);
 
-    cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_ptr2, in_ptr2.get(), bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr2, in_ptr2.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
 
     int dimGridX = (ptr_size + THREAD_SIZE_XY - 1) / THREAD_SIZE_XY;
     powerElementwiseD <<< dimGridX, THREAD_SIZE_XY >>> (ptr_size, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr_size]);
-    cudaMemcpy(out_ptr.get(), gpu_ptr3, bytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_ptr.get(), gpu_ptr3, gpu_ptr1_bytes, cudaMemcpyDeviceToHost);
 
     cudaFree(gpu_ptr1);
     cudaFree(gpu_ptr2);
@@ -174,8 +174,6 @@ void transposeD(int rows, int cols, int depths, float* ptr1, float* ptr2) {
 
 // I need to reformat all of the other functions to fit this
 std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size) {
-    int bytes = ptr1_size * sizeof(float);
-
     int cols = in_ptr1_dims[0];
     int rows = in_ptr1_dims[1];
     // Is there a faster way to do this
@@ -184,11 +182,13 @@ std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::u
         depths *= in_ptr1_dims[i];
     }
 
+    int gpu_ptr1_bytes = ptr1_size * sizeof(float);
+
     float* gpu_ptr1;
     float* gpu_ptr2;
-    cudaMalloc(&gpu_ptr1, bytes);
-    cudaMalloc(&gpu_ptr2, bytes);
-    cudaMemcpy(gpu_ptr1, in_ptr1.get(), bytes, cudaMemcpyHostToDevice);
+    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr1_bytes);
+    cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
 
     int grid_cols = (cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
     int grid_rows = (rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
@@ -200,7 +200,7 @@ std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::u
     transposeD <<< gridSize, threadSize >>> (rows, cols, depths, gpu_ptr1, gpu_ptr2);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr1_size]);
-    cudaMemcpy(out_ptr.get(), gpu_ptr2, bytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(out_ptr.get(), gpu_ptr2, gpu_ptr1_bytes, cudaMemcpyDeviceToHost);
 
     cudaFree(gpu_ptr1);
     cudaFree(gpu_ptr2);
@@ -225,10 +225,6 @@ void multiplyD(int rows, int shared, int cols, int depths, float* ptr1, float* p
 }
 
 std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims, int in_ptr2_dims_size, int ptr2_size) {
-    // This is going to make the assumption that they are equal
-
-    // Maybe move all of the byte size code below the rows and cols allocations
-
     int ptr1_rows = in_ptr1_dims[1];
     int ptr2_cols = in_ptr2_dims[0];
     int shared_size = in_ptr1_dims[0];
@@ -239,7 +235,7 @@ std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::un
 
     int gpu_ptr1_bytes = ptr1_size * sizeof(float);
     int gpu_ptr2_bytes = ptr2_size * sizeof(float);
-    int gpu_ptr3_bytes = ptr1_rows * ptr2_cols * sizeof(float);
+    int gpu_ptr3_bytes = depths * ptr1_rows * ptr2_cols * sizeof(float);
 
     float* gpu_ptr1;
     float* gpu_ptr2;
@@ -250,7 +246,6 @@ std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::un
     cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
     cudaMemcpy(gpu_ptr2, in_ptr2.get(), gpu_ptr2_bytes, cudaMemcpyHostToDevice);
 
-    // How is this going to be structured? How many threads do we need for each?
     int grid_cols = (ptr2_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
     int grid_rows = (ptr1_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
     int grid_depths = (depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
@@ -260,7 +255,7 @@ std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::un
 
     multiplyD <<< gridSize, threadSize >>> (ptr1_rows, shared_size, ptr2_cols, depths, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
-    std::unique_ptr<float[]> out_ptr(new float[ptr1_rows * ptr2_cols]);
+    std::unique_ptr<float[]> out_ptr(new float[depths * ptr1_rows * ptr2_cols]);
     cudaMemcpy(out_ptr.get(), gpu_ptr3, gpu_ptr3_bytes, cudaMemcpyDeviceToHost);
 
     cudaFree(gpu_ptr1);

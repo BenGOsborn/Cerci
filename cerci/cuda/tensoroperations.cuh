@@ -1,16 +1,5 @@
 #pragma once
 
-// Error macro
-
-#include <iostream>
-#define cudaErr(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true) {
-    if (code != cudaSuccess) {
-        std::cout << cudaGetErrorString(code) << " " << file << " " << line << std::endl; 
-        if (abort) exit(code);
-    }
-}
-
 // Perform the error checking on the python higher level part
 
 #include <memory>

@@ -287,7 +287,7 @@ void maxPoolingD(int cols, int rows, int depths, int kernel_cols, int kernel_row
                 }
             }
 
-            // How do I calculate the pooled square index?
+            // Might potentially need a different way of calculating this I am not sure that it will work
             int pooled_cols_size = (cols - kernel_cols + stride_cols) / stride_cols;
             int pooled_col = (col - kernel_cols + stride_cols) / stride_cols; // Investigate for this formula in general what happens if it is negative
             int pooled_row = (row - kernel_rows + stride_rows) / stride_rows;

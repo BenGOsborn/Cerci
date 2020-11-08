@@ -164,12 +164,12 @@ std::unique_ptr<float[]> CUDApowerElementwise(std::unique_ptr<float[]>& in_ptr1,
 }
 
 __global__
-void transposeD(int rows, int cols, int depths, float* ptr1, float* ptr2) {
+void transposeD(int cols, int rows, int depths, float* ptr1, float* ptr2) {
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int depth = blockIdx.z * blockDim.z + threadIdx.z;
     // Of course this is going to need a Z coordinate for the infinite dimensions it can take
-    if ((depth < depths) && (row < rows) && (col < cols)) ptr2[depth * rows * cols + row * cols + col] = ptr1[depth * rows * cols + col * rows + row];
+    if ((col < cols) && (row < rows) && (depth < depths)) ptr2[depth * rows * cols + row * cols + col] = ptr1[depth * rows * cols + col * rows + row];
 }
 
 // I need to reformat all of the other functions to fit this
@@ -197,7 +197,7 @@ std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::u
     dim3 gridSize(grid_cols, grid_cols, grid_depths);
     dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
 
-    transposeD <<< gridSize, threadSize >>> (rows, cols, depths, gpu_ptr1, gpu_ptr2);
+    transposeD <<< gridSize, threadSize >>> (cols, rows, depths, gpu_ptr1, gpu_ptr2);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr1_size]);
     cudaMemcpy(out_ptr.get(), gpu_ptr2, gpu_ptr1_bytes, cudaMemcpyDeviceToHost);
@@ -209,7 +209,7 @@ std::unique_ptr<float[]> CUDAtranspose(std::unique_ptr<float[]>& in_ptr1, std::u
 } 
 
 __global__
-void multiplyD(int rows, int shared, int cols, int depths, float* ptr1, float* ptr2, float* ptr3) {
+void multiplyD(int cols, int shared, int rows, int depths, float* ptr1, float* ptr2, float* ptr3) {
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int depth = blockIdx.z * blockDim.z + threadIdx.z;
@@ -253,7 +253,7 @@ std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::un
     dim3 gridSize(grid_cols, grid_cols, grid_depths);
     dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
 
-    multiplyD <<< gridSize, threadSize >>> (ptr1_rows, shared_size, ptr2_cols, depths, gpu_ptr1, gpu_ptr2, gpu_ptr3);
+    multiplyD <<< gridSize, threadSize >>> (ptr2_cols, shared_size, ptr1_rows, depths, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
     std::unique_ptr<float[]> out_ptr(new float[depths * ptr1_rows * ptr2_cols]);
     cudaMemcpy(out_ptr.get(), gpu_ptr3, gpu_ptr3_bytes, cudaMemcpyDeviceToHost);
@@ -262,5 +262,78 @@ std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::un
     cudaFree(gpu_ptr2);
     cudaFree(gpu_ptr3);
 
+    return out_ptr;
+}
+
+__global__
+void maxPoolingD(int cols, int rows, int depths, int kernel_cols, int kernel_rows, in stride_cols, int stride_rows, float* ptr1, float* ptr2) {
+    int col = blockIdx.x * blockDim.x + threadIdx.x; // Col of the unpooled ptr
+    int row = blockIdx.y * blockDim.y + threadIdx.y; // Row of the unpooled ptr
+    int depth = blockIdx.z * blockDim.z + threadIdx.z; // Depth of the unpooled ptr
+
+    if ((col < cols - kernel_cols + 1) && (row < rows - kernel_rows + 1) && (depth < depths)) {
+        if ((col % stride_cols == 0) && (row % stride_rows)) {
+
+            int max = ptr1[depth * rows * cols + row * cols + col];
+            int comparison;
+
+            for (int i = 0; i < kernel_rows; i++) {
+                for (int j = 0; j < kernel_cols; j++) {
+
+                    // Now we need to get the calculation for the max calculaion
+                    comparison = ptr1[depth * rows * cols + (row + i) * cols + (col + j)];
+                    if (max < comparison) max = comparison; 
+
+                }
+            }
+
+            // How do I calculate the pooled square index?
+            int pooled_cols_size = (cols - kernel_cols + stride_cols) / stride_cols;
+            int pooled_col = (col - kernel_cols + stride_cols) / stride_cols; // Investigate for this formula in general what happens if it is negative
+            int pooled_row = (row - kernel_rows + stride_rows) / stride_rows;
+            ptr2[depth * rows * cols + pooled_row * pooled_cols_size + pooled_col] = max;
+
+        }
+    }
+}
+
+std::unique_ptr<float[]> CUDAmaxPooling(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, int kernel_cols, int kernel_rows, int stride_cols, int stride_rows) {
+    // This is raw dimensions
+    int ptr1_cols = in_ptr1_dims[0];
+    int ptr1_rows = in_ptr1_dims[1];
+    int depths = 1;
+    for (int i = 2; i < in_ptr1_dims_size; i++) {
+        depths *= in_ptr1_dims[i];
+    }
+
+    // This is pooled dims
+    int ptr2_cols = (ptr1_cols - kernel_cols + stride_cols) / stride_cols;
+    int ptr2_rows = (ptr1_rows - kernel_rows + stride_rows) / stride_rows;
+    int ptr2_size = ptr2_cols * ptr2_rows * depths;
+
+    int gpu_ptr1_bytes = ptr1_size * sizeof(float);
+    int gpu_ptr2_bytes = ptr2_size * sizeof(float);
+
+    float* gpu_ptr1;
+    float* gpu_ptr2;
+    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr2_bytes);
+    cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+
+    int grid_cols = (ptr1_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_rows = (ptr1_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_depths = (depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
+
+    dim3 gridSize(grid_cols, grid_cols, grid_depths);
+    dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
+
+    maxPoolingD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, depths, kernel_rows, kernel_cols, stride_cols, stride_cols, gpu_ptr1, gpu_ptr2);
+
+    std::unique_ptr<float[]> out_ptr(new float[ptr2_size]);
+    cudaMemcpy(out_ptr.get(), gpu_ptr2, gpu_ptr2_bytes, cudaMemcpyDeviceToHost);
+
+    cudaFree(gpu_ptr1);
+    cudaFree(gpu_ptr2);
+    
     return out_ptr;
 }

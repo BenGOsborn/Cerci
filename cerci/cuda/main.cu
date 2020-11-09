@@ -10,7 +10,7 @@ int main() {
     std::unique_ptr<int[]> dims1(new int[dim_size1]{16, 16, 4});
     std::unique_ptr<float[]> mat1(new float[size1]);
     for (int i = 0; i < size1; i++) {
-        mat1[i] = 3;
+        mat1[i] = rand() % 100;
     }
 
     // So now it is only doing the pooling for the first layer and not any of the others for som reason?

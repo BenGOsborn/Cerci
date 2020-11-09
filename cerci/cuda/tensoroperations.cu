@@ -339,3 +339,40 @@ std::unique_ptr<float[]> CUDAmaxPooling(std::unique_ptr<float[]>& in_ptr1, std::
     
     return out_ptr;
 }
+
+__global__
+void padD() {
+
+}
+
+std::unique_ptr<float[]> CUDApad(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, int pad_left, int pad_right, int pad_up, int pad_down, int pad_between_cols, int pad_between_rows) {
+    int ptr1_cols = in_ptr1_dims[0];
+    int ptr1_rows = in_ptr1_dims[1];
+    int depths = 1;
+    for (int i = 2; i < in_ptr1_dims_size; i++) {
+        depths *= in_ptr1_dims[i];
+    }
+
+    int ptr2_cols = pad_left + pad_right + ptr1_cols + pad_between_cols * (ptr1_cols - 1);
+    int ptr2_rows pad_up + pad_down + ptr1_rows + pad_between_rows * (ptr1_rows - 1);
+    // I need to standardize this across all of the functions and then use it for the memory allocation space
+    int ptr2_size = ptr2_cols * ptr2_rows * depths; 
+
+    int gpu_ptr1_bytes = ptr1_size * sizeof(float);
+    int gpu_ptr2_bytes = ptr2_size * sizeof(float);
+
+    float* gpu_ptr1;
+    float* gpu_ptr2;
+    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr2_bytes);
+    cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+
+    int grid_cols = (ptr2_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_rows = (ptr2_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_depths = (depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
+
+    dim3 gridSize(grid_cols, grid_cols, grid_depths);
+    dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
+
+    // Now I need to launch the kernel and perform the padding/dilation logic
+}

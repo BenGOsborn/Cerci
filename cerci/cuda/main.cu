@@ -14,7 +14,7 @@ int main() {
     }
 
     // Nothing is being returned
-    std::unique_ptr<float[]> out_mat = CUDApad(mat1, dims1, dim_size1, size1, 0, 0, 0, 0, 1, 1);
+    std::unique_ptr<float[]> out_mat = CUDApad(mat1, dims1, dim_size1, size1, 1, 1, 1, 1, 1, 1);
 
     for (int i = 0; i < 98; i++) {
         std::cout << out_mat[i] << " ";

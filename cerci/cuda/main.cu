@@ -10,13 +10,17 @@ int main() {
     std::unique_ptr<int[]> dims1(new int[dim_size1]{3, 3, 2});
     std::unique_ptr<float[]> mat1(new float[size1]);
     for (int i = 0; i < size1; i++) {
-        mat1[i] = 2;
+        mat1[i] = rand() % 10;
     }
 
     // Nothing is being returned
-    std::unique_ptr<float[]> out_mat = CUDApad(mat1, dims1, dim_size1, size1, 1, 1, 1, 1, 1, 1);
+    std::unique_ptr<float[]> out_mat = CUDArotate(mat1, dims1, dim_size1, size1);
 
-    for (int i = 0; i < 98; i++) {
+    for (int i = 0; i < size1; i++) {
+        std::cout << mat1[i] << " ";
+    }
+    std::cout << std::endl;
+    for (int i = 0; i < size1; i++) {
         std::cout << out_mat[i] << " ";
     }
     std::cout << std::endl;

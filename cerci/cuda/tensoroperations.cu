@@ -266,6 +266,49 @@ std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::un
 }
 
 __global__
+void rotateD(int cols, int rows, int depths, float* ptr1, float* ptr2) {
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int depth = blockIdx.z * blockDim.z + threadIdx.z;
+
+    if ((col < cols) && (row < rows) && (depth < depths)) ptr2[depth * rows * cols + (rows - row - 1) * cols + (cols - col - 1)] = ptr1[depth * rows * cols + row * cols + col];
+}
+
+std::unique_ptr<float[]> CUDArotate(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size) {
+    int ptr1_cols = in_ptr1_dims[0];
+    int ptr1_rows = in_ptr1_dims[1];
+    int depths = 1;
+    for (int i = 2; i < in_ptr1_dims_size; i++) {
+        depths *= in_ptr1_dims[i];
+    }
+
+    int gpu_ptr_bytes = ptr1_size * sizeof(float);
+
+    float* gpu_ptr1;
+    float* gpu_ptr2;
+    cudaMalloc(&gpu_ptr1, gpu_ptr_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr_bytes);
+    cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr_bytes, cudaMemcpyHostToDevice);
+
+    int grid_cols = (ptr1_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_rows = (ptr1_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_depths = (depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
+
+    dim3 gridSize(grid_cols, grid_cols, grid_depths);
+    dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
+
+    rotateD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, depths, gpu_ptr1, gpu_ptr2);
+
+    std::unique_ptr<float[]> out_ptr(new float[ptr1_size]);
+    cudaMemcpy(out_ptr.get(), gpu_ptr2, gpu_ptr_bytes, cudaMemcpyDeviceToHost);
+
+    cudaFree(gpu_ptr1);
+    cudaFree(gpu_ptr2);
+
+    return out_ptr;
+}
+
+__global__
 void maxPoolingD(int cols, int rows, int depths, int kernel_cols, int kernel_rows, int stride_cols, int stride_rows, float* ptr1, float* ptr2) {
     int col = blockIdx.x * blockDim.x + threadIdx.x; // Col of the unpooled ptr
     int row = blockIdx.y * blockDim.y + threadIdx.y; // Row of the unpooled ptr
@@ -340,38 +383,70 @@ std::unique_ptr<float[]> CUDAmaxPooling(std::unique_ptr<float[]>& in_ptr1, std::
     return out_ptr;
 }
 
-// Maybe for the max poolingD I should do what I did here and include the padded and non padded dimensions and such for easier passing
 __global__
-void padD(int cols, int rows, int padded_cols, int padded_rows, int depths, int pad_left, int pad_right, int pad_up, int pad_down, int pad_between_cols, int pad_between_rows, float* ptr1, float* ptr2) {
-    int col = blockIdx.x * blockDim.x + threadIdx.x; // Col of the unpadded ptr
-    int row = blockIdx.y * blockDim.y + threadIdx.y; // Row of the unpadded ptr
-    int depth = blockIdx.z * blockDim.z + threadIdx.z; // Depth of the unpadded ptr
+void poolingDerivD(int cols, int rows, int depths, int kernel_cols, int kernel_rows, int stride_cols, int stride_rows, float* ptr1, float* ptr2, float* ptr3) {
+    int col = blockIdx.x * blockDim.x + threadIdx.x; // Col of the unpooled ptr
+    int row = blockIdx.y * blockDim.y + threadIdx.y; // Row of the unpooled ptr
+    int depth = blockIdx.z * blockDim.z + threadIdx.z; // Depth of the unpooled ptr
 
-    // This is the col row and depth for the unpadded dimensions
-    if ((col < cols) && (row < rows) && (depth < depths)) ptr2[depth * padded_rows * padded_cols + (pad_up + row * (pad_between_rows + 1)) * padded_cols + (pad_left + col * (pad_between_cols + 1))] = ptr1[depth * rows * cols + row * cols + col];
+    if ((col < cols - kernel_cols + 1) && (row < rows - kernel_rows + 1) && (depth < depths)) {
+        if ((col % stride_cols == 0) && (row % stride_rows == 0)) {
+
+            int max = ptr1[depth * rows * cols + row * cols + col];
+            int argmax_col = 0;
+            int argmax_row = 0;
+            int comparison;
+
+            for (int i = 0; i < kernel_rows; i++) {
+                for (int j = 0; j < kernel_cols; j++) {
+
+                    comparison = ptr1[depth * rows * cols + (row + i) * cols + (col + j)];
+                    if (max < comparison) {
+                        max = comparison;
+                        argmax_col = j;
+                        argmax_row = i;
+                    }
+
+                }
+            } 
+
+            int pooled_cols_size = (cols - kernel_cols + stride_cols) / stride_cols;
+            int pooled_rows_size = (rows - kernel_rows + stride_rows) / stride_rows;
+
+            int pooled_col = (col - kernel_cols + stride_cols) / stride_cols;
+            if (pooled_col < 0) pooled_col = 0;
+            int pooled_row = (row - kernel_rows + stride_rows) / stride_rows;
+            if (pooled_row < 0) pooled_row = 0;
+
+            ptr3[depth * rows * cols + (row + argmax_row) * cols + (col + argmax_col)] += ptr2[depth * pooled_rows_size * pooled_cols_size + pooled_row * pooled_cols_size + pooled_col];
+
+        }
+    }
 }
 
-std::unique_ptr<float[]> CUDApad(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, int pad_left, int pad_right, int pad_up, int pad_down, int pad_between_cols, int pad_between_rows) {
-    int ptr1_cols = in_ptr1_dims[0];
+std::unique_ptr<float[]> CUDApoolingDeriv(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims, int in_ptr2_dims_size, int ptr2_size,  int kernel_cols, int kernel_rows, int stride_cols, int stride_rows) {
+    int ptr1_cols = in_ptr1_dims[0]; // This is the full size unkerneled
     int ptr1_rows = in_ptr1_dims[1];
+    int ptr2_cols = in_ptr2_dims[0]; // This is the kernel size!
+    int ptr2_rows = in_ptr2_dims[1];
     int depths = 1;
     for (int i = 2; i < in_ptr1_dims_size; i++) {
         depths *= in_ptr1_dims[i];
     }
-
-    int ptr2_cols = pad_left + pad_right + ptr1_cols + pad_between_cols * (ptr1_cols - 1);
-    int ptr2_rows = pad_up + pad_down + ptr1_rows + pad_between_rows * (ptr1_rows - 1);
-    int ptr2_size = ptr2_cols * ptr2_rows * depths; // Need to standardize this across all of the functions
 
     int gpu_ptr1_bytes = ptr1_size * sizeof(float);
     int gpu_ptr2_bytes = ptr2_size * sizeof(float);
 
     float* gpu_ptr1;
     float* gpu_ptr2;
+    float* gpu_ptr3;
     cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
     cudaMalloc(&gpu_ptr2, gpu_ptr2_bytes);
+    cudaMalloc(&gpu_ptr3, gpu_ptr1_bytes);
     cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr2, in_ptr2.get(), gpu_ptr2_bytes, cudaMemcpyHostToDevice);
 
+    // Now what memory blocks are we going to use for this?
     int grid_cols = (ptr1_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
     int grid_rows = (ptr1_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
     int grid_depths = (depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
@@ -379,13 +454,14 @@ std::unique_ptr<float[]> CUDApad(std::unique_ptr<float[]>& in_ptr1, std::unique_
     dim3 gridSize(grid_cols, grid_cols, grid_depths);
     dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
 
-    padD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, ptr2_cols, ptr2_rows, depths, pad_left, pad_right, pad_up, pad_down, pad_between_cols, pad_between_rows, gpu_ptr1, gpu_ptr2);
+    poolingDerivD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, depths, kernel_cols, kernel_rows, stride_cols, stride_rows, gpu_ptr1, gpu_ptr2, gpu_ptr3);
 
-    std::unique_ptr<float[]> out_ptr(new float[ptr2_size]);
-    cudaMemcpy(out_ptr.get(), gpu_ptr2, gpu_ptr2_bytes, cudaMemcpyDeviceToHost);
+    std::unique_ptr<float[]> out_ptr(new float[ptr1_size]);
+    cudaMemcpy(out_ptr.get(), gpu_ptr3, gpu_ptr1_bytes, cudaMemcpyDeviceToHost);
 
     cudaFree(gpu_ptr1);
     cudaFree(gpu_ptr2);
+    cudaFree(gpu_ptr3);
 
     return out_ptr;
 }

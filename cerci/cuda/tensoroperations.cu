@@ -340,9 +340,18 @@ std::unique_ptr<float[]> CUDAmaxPooling(std::unique_ptr<float[]>& in_ptr1, std::
     return out_ptr;
 }
 
+// Maybe for the max poolingD I should do what I did here and include the padded and non padded dimensions and such for easier passing
 __global__
-void padD() {
+void padD(int cols, int rows, int padded_cols, int padded_rows, int depths, int pad_left, int pad_right, int pad_up, int pad_down, int pad_between_cols, int pad_between_rows, float* ptr1, float* ptr2) {
+    int col = blockIdx.x * blockDim.x + threadIdx.x; // Col of the unpadded ptr
+    int row = blockIdx.y * blockDim.y + threadIdx.y; // Row of the unpadded ptr
+    int depth = blockIdx.z * blockDim.z + threadIdx.z; // Depth of the unpadded ptr
 
+    // This is the col row and depth for the unpadded dimensions
+    if ((col < cols) && (row < rows) && (depth < depths)) {
+        ptr2[depths * padded_rows * padded_cols + (pad_up + row * (pad_between_rows + 1)) * padded_cols + (pad_left + col * (pad_between_cols + 1))] 
+        = ptr1[depths * rows * cols + row * cols + col];
+    }
 }
 
 std::unique_ptr<float[]> CUDApad(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, int pad_left, int pad_right, int pad_up, int pad_down, int pad_between_cols, int pad_between_rows) {
@@ -367,12 +376,20 @@ std::unique_ptr<float[]> CUDApad(std::unique_ptr<float[]>& in_ptr1, std::unique_
     cudaMalloc(&gpu_ptr2, gpu_ptr2_bytes);
     cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
 
-    int grid_cols = (ptr2_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
-    int grid_rows = (ptr2_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_cols = (ptr1_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_rows = (ptr1_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
     int grid_depths = (depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
 
     dim3 gridSize(grid_cols, grid_cols, grid_depths);
     dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
 
-    // Now I need to launch the kernel and perform the padding/dilation logic
+    padD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, ptr2_cols, ptr2_rows, depths, pad_left, pad_right, pad_up, pad_down, pad_between_cols, pad_between_rows);
+
+    std::unique_ptr<float[]> out_ptr(new float[ptr2_size]);
+    cudaMemcpy(out_ptr.get(), gpu_ptr2, gpu_ptr2_bytes, cudaMemcpyDeviceToHost);
+
+    cudaFree(gpu_ptr1);
+    cudaFree(gpu_ptr2);
+
+    return out_ptr;
 }

@@ -348,9 +348,7 @@ void padD(int cols, int rows, int padded_cols, int padded_rows, int depths, int 
     int depth = blockIdx.z * blockDim.z + threadIdx.z; // Depth of the unpadded ptr
 
     // This is the col row and depth for the unpadded dimensions
-    if ((col < cols) && (row < rows) && (depth < depths)) {
-        ptr2[depth * padded_rows * padded_cols + (pad_up + row * (pad_between_rows + 1)) * padded_cols + (pad_left + col * (pad_between_cols + 1))] = ptr1[depth * rows * cols + row * cols + col];
-    }
+    if ((col < cols) && (row < rows) && (depth < depths)) ptr2[depth * padded_rows * padded_cols + (pad_up + row * (pad_between_rows + 1)) * padded_cols + (pad_left + col * (pad_between_cols + 1))] = ptr1[depth * rows * cols + row * cols + col];
 }
 
 std::unique_ptr<float[]> CUDApad(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, int pad_left, int pad_right, int pad_up, int pad_down, int pad_between_cols, int pad_between_rows) {

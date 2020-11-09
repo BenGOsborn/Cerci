@@ -349,8 +349,7 @@ void padD(int cols, int rows, int padded_cols, int padded_rows, int depths, int 
 
     // This is the col row and depth for the unpadded dimensions
     if ((col < cols) && (row < rows) && (depth < depths)) {
-        ptr2[depths * padded_rows * padded_cols + (pad_up + row * (pad_between_rows + 1)) * padded_cols + (pad_left + col * (pad_between_cols + 1))] 
-        = ptr1[depths * rows * cols + row * cols + col];
+        ptr2[depth * padded_rows * padded_cols + (pad_up + row * (pad_between_rows + 1)) * padded_cols + (pad_left + col * (pad_between_cols + 1))] = ptr1[depth * rows * cols + row * cols + col];
     }
 }
 
@@ -363,9 +362,8 @@ std::unique_ptr<float[]> CUDApad(std::unique_ptr<float[]>& in_ptr1, std::unique_
     }
 
     int ptr2_cols = pad_left + pad_right + ptr1_cols + pad_between_cols * (ptr1_cols - 1);
-    int ptr2_rows pad_up + pad_down + ptr1_rows + pad_between_rows * (ptr1_rows - 1);
-    // I need to standardize this across all of the functions and then use it for the memory allocation space
-    int ptr2_size = ptr2_cols * ptr2_rows * depths; 
+    int ptr2_rows = pad_up + pad_down + ptr1_rows + pad_between_rows * (ptr1_rows - 1);
+    int ptr2_size = ptr2_cols * ptr2_rows * depths; // Need to standardize this across all of the functions
 
     int gpu_ptr1_bytes = ptr1_size * sizeof(float);
     int gpu_ptr2_bytes = ptr2_size * sizeof(float);
@@ -383,7 +381,7 @@ std::unique_ptr<float[]> CUDApad(std::unique_ptr<float[]>& in_ptr1, std::unique_
     dim3 gridSize(grid_cols, grid_cols, grid_depths);
     dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
 
-    padD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, ptr2_cols, ptr2_rows, depths, pad_left, pad_right, pad_up, pad_down, pad_between_cols, pad_between_rows);
+    padD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, ptr2_cols, ptr2_rows, depths, pad_left, pad_right, pad_up, pad_down, pad_between_cols, pad_between_rows, gpu_ptr1, gpu_ptr2);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr2_size]);
     cudaMemcpy(out_ptr.get(), gpu_ptr2, gpu_ptr2_bytes, cudaMemcpyDeviceToHost);

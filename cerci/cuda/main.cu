@@ -5,29 +5,25 @@
 
 int main() {
 
-    int size1 = 1 << 3;
+    int size1 = 1 << 10;
     int dim_size1 = 3;
-    std::unique_ptr<int[]> dims1(new int[dim_size1]{2, 2, 2});
+    std::unique_ptr<int[]> dims1(new int[dim_size1]{16, 16, 4});
     std::unique_ptr<float[]> mat1(new float[size1]);
     for (int i = 0; i < size1; i++) {
-        mat1[i] = 2;
+        mat1[i] = 3;
     }
 
-    int size2 = 1 << 3;
-    int dim_size2 = 3;
-    std::unique_ptr<int[]> dims2(new int[dim_size2]{2, 2, 2});
-    std::unique_ptr<float[]> mat2(new float[size2]);
-    for (int i = 0; i < size2; i++) {
-        mat2[i] = 3;
-    }
+    // So now it is only doing the pooling for the first layer and not any of the others for som reason?
+    std::unique_ptr<float[]> out_mat = CUDAmaxPooling(mat1, dims1, dim_size1, size1, 2, 2, 2, 2);
 
-    // It is doing it for the wrong values
-    std::unique_ptr<float[]> out_mat = CUDAmultiply(mat1, dims1, dim_size1, size1, mat2, dims2, dim_size2, size2);
-
-    for (int i = 0; i < dims1[2] * dims1[1] * dims2[0]; i++) {
+    for (int i = 0; i < size1; i++) {
         std::cout << out_mat[i] << " ";
     }
-    std::cout << std::endl;
+    std::cout << "\nVS UNPOOLED:" << std::endl;
+
+    for (int i = 0; i < size1; i++) {
+        std::cout << mat1[i] << " ";
+    }
 
     return 0;
 }

@@ -266,13 +266,13 @@ std::unique_ptr<float[]> CUDAmultiply(std::unique_ptr<float[]>& in_ptr1, std::un
 }
 
 __global__
-void maxPoolingD(int cols, int rows, int depths, int kernel_cols, int kernel_rows, in stride_cols, int stride_rows, float* ptr1, float* ptr2) {
+void maxPoolingD(int cols, int rows, int depths, int kernel_cols, int kernel_rows, int stride_cols, int stride_rows, float* ptr1, float* ptr2) {
     int col = blockIdx.x * blockDim.x + threadIdx.x; // Col of the unpooled ptr
     int row = blockIdx.y * blockDim.y + threadIdx.y; // Row of the unpooled ptr
     int depth = blockIdx.z * blockDim.z + threadIdx.z; // Depth of the unpooled ptr
 
     if ((col < cols - kernel_cols + 1) && (row < rows - kernel_rows + 1) && (depth < depths)) {
-        if ((col % stride_cols == 0) && (row % stride_rows)) {
+        if ((col % stride_cols == 0) && (row % stride_rows == 0)) {
 
             int max = ptr1[depth * rows * cols + row * cols + col];
             int comparison;
@@ -280,22 +280,21 @@ void maxPoolingD(int cols, int rows, int depths, int kernel_cols, int kernel_row
             for (int i = 0; i < kernel_rows; i++) {
                 for (int j = 0; j < kernel_cols; j++) {
 
-                    // Now we need to get the calculation for the max calculaion
                     comparison = ptr1[depth * rows * cols + (row + i) * cols + (col + j)];
                     if (max < comparison) max = comparison; 
-
+                    
                 }
             }
 
-            // Might potentially need a different way of calculating this I am not sure that it will work
             int pooled_cols_size = (cols - kernel_cols + stride_cols) / stride_cols;
+            int pooled_rows_size = (rows - kernel_rows + stride_rows) / stride_rows;
+
             int pooled_col = (col - kernel_cols + stride_cols) / stride_cols;
             if (pooled_col < 0) pooled_col = 0;
             int pooled_row = (row - kernel_rows + stride_rows) / stride_rows;
             if (pooled_row < 0) pooled_row = 0;
 
-            ptr2[depth * rows * cols + pooled_row * pooled_cols_size + pooled_col] = max;
-
+            ptr2[depth * pooled_rows_size * pooled_cols_size + pooled_row * pooled_cols_size + pooled_col] = max;
         }
     }
 }

@@ -516,6 +516,43 @@ std::unique_ptr<float[]> CUDAdupe(std::unique_ptr<float[]>& in_ptr1, std::unique
     return out_ptr;
 }
 
+__global__
+// What row, col and depth are we choosing? The big one
+void convolutionD(int cols, int rows, int kernel_cols, int kernel_rows, int depths, int stride_cols, int stride_rows, float* ptr1, float* ptr2, float* ptr3) {
+    // In here we take the correct stride and perform the convolution over that desired block for each element
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int depth = blockIdx.z * blockDim.z + threadIdx.z;
+
+    if ((col < cols - kernel_cols + 1) && (row < rows - kernel_rows + 1) && (depth < depths)) {
+
+        if ((col % stride_cols == 0) && (row % stride_rows == 0)) {
+
+            float weighted = 0;
+
+            for (int i = 0; i < kernel_rows; i++) {
+                for (int j = 0; j < kernel_cols; j++) {
+
+                    weighted += ptr1[depth * rows * cols + (row + i) * cols + (col + j)] * ptr2[depth * rows * cols + i * kernel_cols + j]; // Now I have to do the dot product of the kernel and the convolved
+
+                }
+            }
+
+            int weighted_cols_size = (cols - kernel_cols + stride_cols) / stride_cols;
+            int weighted_rows_size = (rows - kernel_rows + stride_rows) / stride_rows;
+
+            int weighted_col = (col - kernel_cols + stride_cols) / stride_cols;
+            if (weighted_col < 0) pooled_col = 0;
+            int weighted_row = (row - kernel_rows + stride_rows) / stride_rows;
+            if (weighted_row < 0) pooled_row = 0;            
+
+            ptr3[depth * weighted_rows_size * weighted_cols_size + weighted_row * weighted_cols_size + weighted_col] = weighted;
+
+        }
+
+    }
+}
+
 // No bias is required for this
 std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims, int in_ptr2_dims_size, int ptr2_size, int stride_cols, int stride_rows) {
     // Pseudo:
@@ -548,6 +585,7 @@ std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std:
         ptr2_depths *= in_ptr2_dims[i];
     }
 
+    // But maybe it should be outside just in case we pass through other arguments, so its like the depths but only above the other layer...?
     int dupe_ptr1 = in_ptr2_dims[3]; // This is going to be the amount of filters there are (written in terms of the fourth dimension) (we convert it to 3d)
     // Maybe we should just assume that it will be a four dimensional array
     int dupe_ptr2 = in_ptr1_dims[3]; // This is going to be the amount of blocks that there are in the array
@@ -560,9 +598,41 @@ std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std:
     int ptr2_duped_size = ptr2_size * dupe_ptr2;
     // I need my third gpu output of the convolved layers with the convolutions (should be the same as the pooling size)
     // The depth of this will be the same as both of the duped size (they are all the same practically)
+    int ptr3_cols = (ptr1_cols - ptr2_cols + stride_cols) / stride_cols;
+    int ptr3_rows = (ptr1_rows - ptr2_rows + stride_rows) / stride_rows;
+    int ptr3_depths = dupe_pt21 * ptr1_depths;
+    int ptr3_size = ptr3_depths * ptr3_rows * ptr3_cols;
 
     int gpu_ptr1_bytes = ptr1_duped_size * sizeof(float);
     int gpu_ptr2_bytes = ptr2_duped_size * sizeof(float);
+    int gpu_ptr3_bytes = ptr3_size * sizeof(float);
 
-    // Now I have to allocate my block sizes?
+    float* gpu_ptr1; // Convolved
+    float* gpu_ptr2; // Kernel
+    float* gpu_ptr3; // Output
+    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr2_bytes);
+    cudaMalloc(&gpu_ptr3, gpu_ptr3_bytes);
+    cudaMemcpy(gpu_ptr1, ptr1_duped.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr2, ptr2_duped.get(), gpu_ptr2_bytes, cudaMemcpyHostToDevice);
+
+    // Now I have to create the blocks
+    int grid_cols = (ptr3_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_rows = (ptr3_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    // What is the dims for this grid here?
+    int grid_depths = (ptr3_depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
+
+    dim3 gridSize(grid_cols, grid_cols, grid_depths);
+    dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
+
+    // Perform the actual convolution function down here
+
+    std::unique_ptr<float[]> out_ptr(new float[ptr3_size]);
+    cudaMemcpy(out_ptr.get(), gpu_ptr3, gpu_ptr3_bytes, cudaMemcpyDeviceToHost);
+
+    cudaFree(gpu_ptr1);
+    cudaFree(gpu_ptr2);
+    cudaFree(gpu_ptr3);
+
+    return out_ptr;
 }

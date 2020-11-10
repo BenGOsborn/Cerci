@@ -465,3 +465,68 @@ std::unique_ptr<float[]> CUDApoolingDeriv(std::unique_ptr<float[]>& in_ptr1, std
 
     return out_ptr;
 }
+
+__global__
+void stretchD(int cols, int depths, int depths, int stretch_size, float* ptr1, float* ptr2) {
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int depth = blockIdx.z * blockDim.z + threadIdx.z;
+
+    if ((col < cols) && (row < rows) && (depth < depths)) {
+        int orig_depth = depth / stretch_size;
+        ptr2[depth * rows * cols + row * cols + col] = ptr1[orig_depth * rows * cols + row * cols + col];
+    }
+}
+
+std::unique_ptr<float[]> CUDAstretch(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, int stretch_size) {
+    int ptr1_cols = in_ptr1_dims[0];
+    int ptr1_rows = in_ptr1_dims[1];
+    int depths = 1;
+    for (int i = 2; i < in_ptr1_dims_size; i++) {
+        depths *= in_ptr1_dims[i];
+    }
+
+    int ptr2_depths = stretch_size * depths;
+    int ptr2_size = ptr1_cols * ptr1_rows * ptr2_depths;
+
+    int gpu_ptr1_bytes = ptr1_size * sizeof(float);
+    int gpu_ptr2_bytes = ptr2_size * sizeof(float);
+
+    float* gpu_ptr1;
+    float* gpu_ptr2;
+    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+    cudaMalloc(&gpu_ptr2, gpu_ptr2_bytes);
+    cudaMemcpq(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+
+    int grid_cols = (ptr1_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_rows = (ptr1_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+    int grid_depths = (ptr2_depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
+
+    dim3 gridSize(grid_cols, grid_cols, grid_depths);
+    dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
+
+    stretchD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, ptr2_depths, stretch_size, gpu_ptr1, gpu_ptr2);
+
+    std::unique_ptr<float[]> out_ptr(new float[ptr2_size]);
+    cudaMemcpy(out_ptr.get(), gpu_ptr2, gpu_ptr2_bytes, cudaMemcpyDeviceToHost);
+
+    cudaFree(gpu_ptr1);
+    cudaFree(gpu_ptr2);
+
+    return out_ptr;
+}
+
+// No bias is required for this
+std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims, int in_ptr2_dims_size, int ptr2_size, int stride_cols, int stride_rows) {
+    // So what do we need?
+    //  We need a stride size for the kernels
+    //  Dont worry about the bias, can deal with this with a simple addition
+
+    // Pseudo:
+    //  Have our input block of the same depth
+    //  Apply each of the kernels to that block
+    // Repeat for all of the kernels and blocks
+
+    // We want to do everything in three dimensions for the threading capabilities and cross dimension support
+    //  To do this we want to 
+}

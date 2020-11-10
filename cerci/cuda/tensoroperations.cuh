@@ -2,6 +2,7 @@
 
 // Perform the error checking on the python higher level part
 // Maybe we want to change the block sizes so that there are more threads for different GPU's
+// Why does it have "in_ptr" followed by "ptr_size" .... ? - reformat this
 
 #include <iostream>
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -37,7 +38,7 @@ std::unique_ptr<float[]> CUDApad(std::unique_ptr<float[]>& in_ptr1, std::unique_
 
 std::unique_ptr<float[]> CUDArotate(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size);
 
-std::unique_ptr<float[]> CUDAstretch(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, int stretch_size);
+std::unique_ptr<float[]> CUDAdupe(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, int dupe_size);
 
 // What if for the convolutional tensor I simply dont do the compilation sum which would make it tricky to backprop through
 // Might have to expand this out to the fourth dimension for true parallel processing

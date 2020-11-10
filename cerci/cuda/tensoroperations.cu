@@ -467,18 +467,18 @@ std::unique_ptr<float[]> CUDApoolingDeriv(std::unique_ptr<float[]>& in_ptr1, std
 }
 
 __global__
-void stretchD(int cols, int rows, int depths, int depths_stretched, float* ptr1, float* ptr2) {
+void dupeD(int cols, int rows, int depths, int duped_depths, float* ptr1, float* ptr2) {
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int depth = blockIdx.z * blockDim.z + threadIdx.z; // Now represents the depth of the unstreteched size
 
-    if ((col < cols) && (row < rows) && (depth < depths_stretched)) {
+    if ((col < cols) && (row < rows) && (depth < duped_depths)) {
         int ptr1_index = depth % depths;
         ptr2[depth * rows * cols + row * cols + col] = ptr1[ptr1_index * rows * cols + row * cols + col];
     }
 }
 
-std::unique_ptr<float[]> CUDAstretch(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, int stretch_size) {
+std::unique_ptr<float[]> CUDAdupe(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, int dupe_size) {
     int ptr1_cols = in_ptr1_dims[0];
     int ptr1_rows = in_ptr1_dims[1];
     int depths = 1;
@@ -486,7 +486,7 @@ std::unique_ptr<float[]> CUDAstretch(std::unique_ptr<float[]>& in_ptr1, std::uni
         depths *= in_ptr1_dims[i];
     }
 
-    int ptr2_depths = stretch_size * depths;
+    int ptr2_depths = dupe_size * depths;
     int ptr2_size = ptr1_cols * ptr1_rows * ptr2_depths;
 
     int gpu_ptr1_bytes = ptr1_size * sizeof(float);
@@ -496,7 +496,7 @@ std::unique_ptr<float[]> CUDAstretch(std::unique_ptr<float[]>& in_ptr1, std::uni
     float* gpu_ptr2;
     cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
     cudaMalloc(&gpu_ptr2, gpu_ptr2_bytes);
-    cudaMemcpq(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(gpu_ptr1, in_ptr1.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
 
     int grid_cols = (ptr1_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
     int grid_rows = (ptr1_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
@@ -505,7 +505,7 @@ std::unique_ptr<float[]> CUDAstretch(std::unique_ptr<float[]>& in_ptr1, std::uni
     dim3 gridSize(grid_cols, grid_cols, grid_depths);
     dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
 
-    stretchD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, ptr2_depths, gpu_ptr1, gpu_ptr2);
+    dupeD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, ptr2_depths, gpu_ptr1, gpu_ptr2);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr2_size]);
     cudaMemcpy(out_ptr.get(), gpu_ptr2, gpu_ptr2_bytes, cudaMemcpyDeviceToHost);
@@ -518,15 +518,51 @@ std::unique_ptr<float[]> CUDAstretch(std::unique_ptr<float[]>& in_ptr1, std::uni
 
 // No bias is required for this
 std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims, int in_ptr2_dims_size, int ptr2_size, int stride_cols, int stride_rows) {
-    // So what do we need?
-    //  We need a stride size for the kernels
-    //  Dont worry about the bias, can deal with this with a simple addition
-
     // Pseudo:
-    //  Have our input block of the same depth
-    //  Apply each of the kernels to that block
-    // Repeat for all of the kernels and blocks
+    //  Use all of the filters as one large "three dimensional tensor"
+    //  Dupe all of the input layers and concat them into one
 
-    // We want to do everything in three dimensions for the threading capabilities and cross dimension support
-    //  To do this we want to // Ah my strecth function does not work with this!
+    //  For each depth tensor (it can be multiple dimensions)
+    //      Perform a full convolution along each element for that specific depth resulting in a big block
+    //      Do this by combining the stretched blocks and performing convolution on each one with the appropriate stride lengths
+
+    // Output this unprocessed block as a four dimensional tensor where the fourth dimension is the num of tensors
+    //  After the convolutions, collapse the tensor into its summed parts and dimensions
+    //  Add the bias term to each
+
+    // What about the addition during backprop of these layers? (I could just reshape and then make all of the appropriate layers concat themselves)
+
+    // Convolve layer
+    int ptr1_cols = in_ptr1_dims[0];
+    int ptr1_rows = in_ptr1_dims[1];
+    int ptr1_depths = 1;
+    for (int i = 0; i < in_ptr1_dims_size; i++) { 
+        ptr1_depths *= in_ptr1_dims[i];
+    }
+
+    // Kernel
+    int ptr2_cols = in_ptr2_dims[0];
+    int ptr2_rows = in_ptr2_dims[1];
+    int ptr2_depths = 1;
+    for (int i = 0; i < in_ptr2_dims_size; i++) { 
+        ptr2_depths *= in_ptr2_dims[i];
+    }
+
+    int dupe_ptr1 = in_ptr2_dims[3]; // This is going to be the amount of filters there are (written in terms of the fourth dimension) (we convert it to 3d)
+    // Maybe we should just assume that it will be a four dimensional array
+    int dupe_ptr2 = in_ptr1_dims[3]; // This is going to be the amount of blocks that there are in the array
+
+    // Now I just need to scale each pointer respectively (I dont really like having composite functions like this, is there anyway to avoid it?)
+    std::unique_ptr<float[]> ptr1_duped = CUDAdupe(in_ptr1, in_ptr1_dims, in_ptr1_dims_size, ptr1_size, dupe_ptr1); // This will be the ptr1 that has been scaled to match the filter sizes
+    std::unique_ptr<float[]> ptr2_duped = CUDAdupe(in_ptr2, in_ptr2_dims, in_ptr2_dims_size, ptr2_size, dupe_ptr2); // This will scale the kernel to match the amount of input blocks there are
+
+    int ptr1_duped_size = ptr1_size * dupe_ptr1;
+    int ptr2_duped_size = ptr2_size * dupe_ptr2;
+    // I need my third gpu output of the convolved layers with the convolutions (should be the same as the pooling size)
+    // The depth of this will be the same as both of the duped size (they are all the same practically)
+
+    int gpu_ptr1_bytes = ptr1_duped_size * sizeof(float);
+    int gpu_ptr2_bytes = ptr2_duped_size * sizeof(float);
+
+    // Now I have to allocate my block sizes?
 }

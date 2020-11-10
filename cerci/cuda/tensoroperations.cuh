@@ -43,4 +43,4 @@ std::unique_ptr<float[]> CUDAdupe(std::unique_ptr<float[]>& in_ptr1, std::unique
 // What if for the convolutional tensor I simply dont do the compilation sum which would make it tricky to backprop through
 // Might have to expand this out to the fourth dimension for true parallel processing
 // Dont forget the bias term! --- This can be done with a simple addition afterwards --- Training for this might be a bit painful
-std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims, int in_ptr2_dims_size, int ptr2_size, int stride_cols, int stride_rows) {
+std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims, int in_ptr2_dims_size, int ptr2_size, int stride_cols, int stride_rows);

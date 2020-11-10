@@ -473,11 +473,12 @@ void dupeD(int cols, int rows, int depths, int duped_depths, float* ptr1, float*
     int depth = blockIdx.z * blockDim.z + threadIdx.z; // Now represents the depth of the unstreteched size
 
     if ((col < cols) && (row < rows) && (depth < duped_depths)) {
-        int ptr1_index = depth % depths;
-        ptr2[depth * rows * cols + row * cols + col] = ptr1[ptr1_index * rows * cols + row * cols + col];
+        int ptr1_depth = depth % depths;
+        ptr2[depth * rows * cols + row * cols + col] = ptr1[ptr1_depth * rows * cols + row * cols + col];
     }
 }
 
+// This is the broken function
 std::unique_ptr<float[]> CUDAdupe(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, int dupe_size) {
     int ptr1_cols = in_ptr1_dims[0];
     int ptr1_rows = in_ptr1_dims[1];
@@ -500,12 +501,12 @@ std::unique_ptr<float[]> CUDAdupe(std::unique_ptr<float[]>& in_ptr1, std::unique
 
     int grid_cols = (ptr1_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
     int grid_rows = (ptr1_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
-    int grid_depths = (ptr2_depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
+    int grid_depths = (ptr2_depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z; // This should be the depths of the duped one
 
     dim3 gridSize(grid_cols, grid_cols, grid_depths);
     dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
 
-    dupeD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, ptr2_depths, gpu_ptr1, gpu_ptr2);
+    dupeD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, depths, ptr2_depths, gpu_ptr1, gpu_ptr2);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr2_size]);
     cudaMemcpy(out_ptr.get(), gpu_ptr2, gpu_ptr2_bytes, cudaMemcpyDeviceToHost);
@@ -542,9 +543,9 @@ void convolutionD(int cols, int rows, int kernel_cols, int kernel_rows, int dept
             int weighted_rows_size = (rows - kernel_rows + stride_rows) / stride_rows;
 
             int weighted_col = (col - kernel_cols + stride_cols) / stride_cols;
-            if (weighted_col < 0) pooled_col = 0;
+            if (weighted_col < 0) weighted_col = 0;
             int weighted_row = (row - kernel_rows + stride_rows) / stride_rows;
-            if (weighted_row < 0) pooled_row = 0;            
+            if (weighted_row < 0) weighted_row = 0;            
 
             ptr3[depth * weighted_rows_size * weighted_cols_size + weighted_row * weighted_cols_size + weighted_col] = weighted;
 
@@ -600,7 +601,7 @@ std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std:
     // The depth of this will be the same as both of the duped size (they are all the same practically)
     int ptr3_cols = (ptr1_cols - ptr2_cols + stride_cols) / stride_cols;
     int ptr3_rows = (ptr1_rows - ptr2_rows + stride_rows) / stride_rows;
-    int ptr3_depths = dupe_pt21 * ptr1_depths;
+    int ptr3_depths = dupe_ptr1 * ptr1_depths;
     int ptr3_size = ptr3_depths * ptr3_rows * ptr3_cols;
 
     int gpu_ptr1_bytes = ptr1_duped_size * sizeof(float);

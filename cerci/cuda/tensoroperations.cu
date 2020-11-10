@@ -467,14 +467,14 @@ std::unique_ptr<float[]> CUDApoolingDeriv(std::unique_ptr<float[]>& in_ptr1, std
 }
 
 __global__
-void stretchD(int cols, int depths, int depths, int stretch_size, float* ptr1, float* ptr2) {
+void stretchD(int cols, int rows, int depths, int depths_stretched, float* ptr1, float* ptr2) {
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int row = blockIdx.y * blockDim.y + threadIdx.y;
-    int depth = blockIdx.z * blockDim.z + threadIdx.z;
+    int depth = blockIdx.z * blockDim.z + threadIdx.z; // Now represents the depth of the unstreteched size
 
-    if ((col < cols) && (row < rows) && (depth < depths)) {
-        int orig_depth = depth / stretch_size;
-        ptr2[depth * rows * cols + row * cols + col] = ptr1[orig_depth * rows * cols + row * cols + col];
+    if ((col < cols) && (row < rows) && (depth < depths_stretched)) {
+        int ptr1_index = depth % depths;
+        ptr2[depth * rows * cols + row * cols + col] = ptr1[ptr1_index * rows * cols + row * cols + col];
     }
 }
 
@@ -505,7 +505,7 @@ std::unique_ptr<float[]> CUDAstretch(std::unique_ptr<float[]>& in_ptr1, std::uni
     dim3 gridSize(grid_cols, grid_cols, grid_depths);
     dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
 
-    stretchD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, ptr2_depths, stretch_size, gpu_ptr1, gpu_ptr2);
+    stretchD <<< gridSize, threadSize >>> (ptr1_cols, ptr1_rows, ptr2_depths, gpu_ptr1, gpu_ptr2);
 
     std::unique_ptr<float[]> out_ptr(new float[ptr2_size]);
     cudaMemcpy(out_ptr.get(), gpu_ptr2, gpu_ptr2_bytes, cudaMemcpyDeviceToHost);
@@ -528,5 +528,5 @@ std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std:
     // Repeat for all of the kernels and blocks
 
     // We want to do everything in three dimensions for the threading capabilities and cross dimension support
-    //  To do this we want to 
+    //  To do this we want to // Ah my strecth function does not work with this!
 }

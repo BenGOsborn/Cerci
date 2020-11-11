@@ -555,85 +555,95 @@ void convolutionD(int cols, int rows, int kernel_cols, int kernel_rows, int dept
 }
 
 // No bias is required for this
-std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims, int in_ptr2_dims_size, int ptr2_size, int stride_cols, int stride_rows) {
-    // Pseudo:
-    //  Use all of the filters as one large "three dimensional tensor"
-    //  Dupe all of the input layers and concat them into one
+// std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims, int in_ptr2_dims_size, int ptr2_size, int stride_cols, int stride_rows) {
 
-    //  For each depth tensor (it can be multiple dimensions)
-    //      Perform a full convolution along each element for that specific depth resulting in a big block
-    //      Do this by combining the stretched blocks and performing convolution on each one with the appropriate stride lengths
+//     // Convolve layer
+//     int ptr1_cols = in_ptr1_dims[0];
+//     int ptr1_rows = in_ptr1_dims[1];
+//     int ptr1_depths = 1;
+//     for (int i = 0; i < in_ptr1_dims_size; i++) { 
+//         ptr1_depths *= in_ptr1_dims[i];
+//     }
 
-    // Output this unprocessed block as a four dimensional tensor where the fourth dimension is the num of tensors
-    //  After the convolutions, collapse the tensor into its summed parts and dimensions
-    //  Add the bias term to each
+//     // Kernel
+//     int ptr2_cols = in_ptr2_dims[0];
+//     int ptr2_rows = in_ptr2_dims[1];
+//     int ptr2_depths = 1;
+//     for (int i = 0; i < in_ptr2_dims_size; i++) { 
+//         ptr2_depths *= in_ptr2_dims[i];
+//     }
 
-    // What about the addition during backprop of these layers? (I could just reshape and then make all of the appropriate layers concat themselves)
+//     // This will be the amount to scale the pointers for its depth size
+//     int dupe_ptr1 = 1; 
+//     if (in_ptr2_dims_size > 3) dupe_ptr1 = in_ptr2_dims[3];
+//     int dupe_ptr2 = 1;
+//     if (in_ptr1_dims_size > 3) dupe_ptr2 = in_ptr1_dims[3];
 
-    // Convolve layer
-    int ptr1_cols = in_ptr1_dims[0];
-    int ptr1_rows = in_ptr1_dims[1];
-    int ptr1_depths = 1;
-    for (int i = 0; i < in_ptr1_dims_size; i++) { 
-        ptr1_depths *= in_ptr1_dims[i];
-    }
+//     // We see that the dupe function duplicates every depth in each fourth dimension
+//     std::unique_ptr<float[]> ptr1_duped = CUDAdupe(in_ptr1, in_ptr1_dims, in_ptr1_dims_size, ptr1_size, dupe_ptr1); // This will be the ptr1 that has been scaled to match the filter sizes
+//     std::unique_ptr<float[]> ptr2_duped = CUDAdupe(in_ptr2, in_ptr2_dims, in_ptr2_dims_size, ptr2_size, dupe_ptr2); // This will scale the kernel to match the amount of input blocks there are
 
-    // Kernel
-    int ptr2_cols = in_ptr2_dims[0];
-    int ptr2_rows = in_ptr2_dims[1];
-    int ptr2_depths = 1;
-    for (int i = 0; i < in_ptr2_dims_size; i++) { 
-        ptr2_depths *= in_ptr2_dims[i];
-    }
+//     int ptr1_duped_size = ptr1_size * dupe_ptr1;
+//     int ptr2_duped_size = ptr2_size * dupe_ptr2; // This part could be the problem?
 
-    // But maybe it should be outside just in case we pass through other arguments, so its like the depths but only above the other layer...?
-    int dupe_ptr1 = in_ptr2_dims[3]; // This is going to be the amount of filters there are (written in terms of the fourth dimension) (we convert it to 3d)
-    // Maybe we should just assume that it will be a four dimensional array
-    int dupe_ptr2 = in_ptr1_dims[3]; // This is going to be the amount of blocks that there are in the array
+//     // This part is all safe
+//     int ptr3_cols = (ptr1_cols - ptr2_cols + stride_cols) / stride_cols;
+//     int ptr3_rows = (ptr1_rows - ptr2_rows + stride_rows) / stride_rows;
+//     int ptr3_depths = dupe_ptr1 * ptr1_depths;
+//     int ptr3_size = ptr3_depths * ptr3_rows * ptr3_cols;
 
-    // Now I just need to scale each pointer respectively (I dont really like having composite functions like this, is there anyway to avoid it?)
-    std::unique_ptr<float[]> ptr1_duped = CUDAdupe(in_ptr1, in_ptr1_dims, in_ptr1_dims_size, ptr1_size, dupe_ptr1); // This will be the ptr1 that has been scaled to match the filter sizes
-    std::unique_ptr<float[]> ptr2_duped = CUDAdupe(in_ptr2, in_ptr2_dims, in_ptr2_dims_size, ptr2_size, dupe_ptr2); // This will scale the kernel to match the amount of input blocks there are
+//     int gpu_ptr1_bytes = ptr1_duped_size * sizeof(float); // These must be the wrong allocation sizes
+//     int gpu_ptr2_bytes = ptr2_duped_size * sizeof(float);
+//     int gpu_ptr3_bytes = ptr3_size * sizeof(float);
 
-    int ptr1_duped_size = ptr1_size * dupe_ptr1;
-    int ptr2_duped_size = ptr2_size * dupe_ptr2;
-    // I need my third gpu output of the convolved layers with the convolutions (should be the same as the pooling size)
-    // The depth of this will be the same as both of the duped size (they are all the same practically)
-    int ptr3_cols = (ptr1_cols - ptr2_cols + stride_cols) / stride_cols;
-    int ptr3_rows = (ptr1_rows - ptr2_rows + stride_rows) / stride_rows;
-    int ptr3_depths = dupe_ptr1 * ptr1_depths;
-    int ptr3_size = ptr3_depths * ptr3_rows * ptr3_cols;
+//     float* gpu_ptr1; // Convolved
+//     float* gpu_ptr2; // Kernel
+//     float* gpu_ptr3; // Output
+//     cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
+//     cudaMalloc(&gpu_ptr2, gpu_ptr2_bytes);
+//     cudaMalloc(&gpu_ptr3, gpu_ptr3_bytes);
+//     cudaMemcpy(gpu_ptr1, ptr1_duped.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
+//     cudaMemcpy(gpu_ptr2, ptr2_duped.get(), gpu_ptr2_bytes, cudaMemcpyHostToDevice); // The memory allocation for this one is wrong
 
-    int gpu_ptr1_bytes = ptr1_duped_size * sizeof(float);
-    int gpu_ptr2_bytes = ptr2_duped_size * sizeof(float);
-    int gpu_ptr3_bytes = ptr3_size * sizeof(float);
+//     int grid_cols = (ptr3_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+//     int grid_rows = (ptr3_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
+//     int grid_depths = (ptr3_depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
 
-    float* gpu_ptr1; // Convolved
-    float* gpu_ptr2; // Kernel
-    float* gpu_ptr3; // Output
-    cudaMalloc(&gpu_ptr1, gpu_ptr1_bytes);
-    cudaMalloc(&gpu_ptr2, gpu_ptr2_bytes);
-    cudaMalloc(&gpu_ptr3, gpu_ptr3_bytes);
-    cudaMemcpy(gpu_ptr1, ptr1_duped.get(), gpu_ptr1_bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(gpu_ptr2, ptr2_duped.get(), gpu_ptr2_bytes, cudaMemcpyHostToDevice);
+//     dim3 gridSize(grid_cols, grid_cols, grid_depths);
+//     dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
 
-    // Now I have to create the blocks
-    int grid_cols = (ptr3_cols + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
-    int grid_rows = (ptr3_rows + std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z) - 1) / std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z);
-    // What is the dims for this grid here?
-    int grid_depths = (ptr3_depths + THREAD_SIZE_Z - 1) / THREAD_SIZE_Z;
+//     std::unique_ptr<float[]> out_ptr(new float[ptr3_size]);
+//     cudaMemcpy(out_ptr.get(), gpu_ptr3, gpu_ptr3_bytes, cudaMemcpyDeviceToHost);
 
-    dim3 gridSize(grid_cols, grid_cols, grid_depths);
-    dim3 threadSize(std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), std::sqrt(THREAD_SIZE_XY / THREAD_SIZE_Z), THREAD_SIZE_Z);
+//     cudaFree(gpu_ptr1);
+//     cudaFree(gpu_ptr2);
+//     cudaFree(gpu_ptr3);
 
-    // Perform the actual convolution function down here
+//     return out_ptr;
+// }
 
-    std::unique_ptr<float[]> out_ptr(new float[ptr3_size]);
-    cudaMemcpy(out_ptr.get(), gpu_ptr3, gpu_ptr3_bytes, cudaMemcpyDeviceToHost);
+// std::unique_ptr<float[]> CUDAconvolution(std::unique_ptr<float[]>& in_ptr1, std::unique_ptr<int[]>& in_ptr1_dims, int in_ptr1_dims_size, int ptr1_size, std::unique_ptr<float[]>& in_ptr2, std::unique_ptr<int[]>& in_ptr2_dims, int in_ptr2_dims_size, int ptr2_size, int stride_cols, int stride_rows) {
+//     int ptr1_cols = ;
+// }
 
-    cudaFree(gpu_ptr1);
-    cudaFree(gpu_ptr2);
-    cudaFree(gpu_ptr3);
+// New Pseudo:
+//  Inputs: A layered 4 dimensional input block
+//          A layered 4 dimensional weight block (with the same depth as those of the filters)
+//          The third dimensions nof each should line up but not the fourth dimension
 
-    return out_ptr;
-}
+//  Scaling: For the input block scale them to be the same size as the fourth dimension of the weight block 
+//           For the weight blocks, condense it all into a single 3d layer and then scale them by the fourth dimension of the input block
+
+// Post Scaling: Turn the scaled input block into a single three dimensional layer (do this by multiplying the depth by the rest of the size)
+//               Turn the scaled weight block into a big single three dimensional block too
+
+// Remaining steps: Perform the convolution across every different subsection
+// Output it as a block with dimensions of the new rows and cols, the depth of the original depth of the input block and the fourth dimension of the kernels 
+
+// Post processing ----------- (NOT NEEDED)
+//  Do the sum across all of the fourth dimensions into a single third dimension (or something)
+//  Add the bias term to each respective element
+
+// Thoughts?
+// How would this deal with a block size larger than four dimensions?
+// To do so it appears that the dupe function is broken - It does not perform the duplicates properly for just the fourth dimensions, lets check this out
